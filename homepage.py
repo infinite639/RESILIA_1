@@ -105,7 +105,7 @@ st.markdown("""
 
         /* Maintenance Button (Coral Red Solid) */
         div.row-widget.stButton:nth-child(1) > button {
-            background-color: #FF6F61 !important;
+            background-color: #bf3e32 !important;
             color: white !important;
             border: none !important;
         }
@@ -118,7 +118,7 @@ st.markdown("""
         /* Feedback Button (Coral Red Outlined) */
         div.row-widget.stButton:nth-child(2) > button {
             background-color: transparent !important;
-            color: #FF6F61 !important;
+            color: #bf3e32 !important;
             border: 2px solid #FF6F61 !important;
         }
 
@@ -141,7 +141,7 @@ st.markdown(f"""
 """, unsafe_allow_html=True)
 
 # Perfectly Centered Action Buttons
-col1, col2, col3, col4, col5 = st.columns([1, 2, 2, 2, 1])
+col1, col2, col3, col4, col5 = st.columns([2, 2, 2, 2, 2])
 
 with col2:
     if st.button("🏢 Maintenance", key="maint_btn"):
