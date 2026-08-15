@@ -8,18 +8,18 @@ st.set_page_config(
     layout="centered"
 )
 
-# Function to encode image to base64 for seamless HTML embedding
+# Function to encode image to base64 for HTML embedding
 def get_image_base64(path):
-    with open(image_1.png, "rb") as img_file:
+    with open(path, "rb") as img_file:
         return base64.b64encode(img_file.read()).decode("utf-8")
 
-# Convert logo image to base64 string
+# Convert logo image to base64 string using your GitHub filename
 try:
-    logo_base64 = get_image_base64("logo.png")
+    logo_base64 = get_image_base64("image_1.png")
     logo_html = f'<img src="data:image/png;base64,{logo_base64}" class="logo-img">'
-except Exception:
-    # Fallback placeholder icon if image isn't found
-    logo_html = '<div class="logo-placeholder">🛡️</div>'
+except FileNotFoundError:
+    # Fallback shield if the file name isn't found
+    logo_html = '<div class="logo-placeholder" style="font-size: 2.5rem;">🛡️</div>'
 
 # Custom CSS for styling
 st.markdown("""
@@ -36,13 +36,13 @@ st.markdown("""
         footer {visibility: hidden;}
         header {visibility: hidden;}
 
-        /* Main container styling */
+        /* Main container layout */
         .main-container {
             display: flex;
             flex-direction: column;
             align-items: center;
             justify-content: center;
-            padding-top: 5rem;
+            padding-top: 4rem;
             text-align: center;
         }
 
@@ -51,12 +51,12 @@ st.markdown("""
             display: flex;
             align-items: center;
             justify-content: center;
-            gap: 18px;
-            margin-bottom: 24px;
+            gap: 16px;
+            margin-bottom: 20px;
         }
 
         .logo-img {
-            width: 55px;
+            width: 50px;
             height: auto;
         }
 
@@ -83,13 +83,14 @@ st.markdown("""
             font-size: 1.25rem;
             color: #2D3748;
             font-weight: 400;
-            margin-bottom: 45px;
+            margin-bottom: 40px;
+            line-height: 1.5;
         }
 
         /* Custom Button Styles */
         div.stButton > button {
             width: 100%;
-            height: 52px;
+            height: 50px;
             border-radius: 8px;
             font-size: 1.05rem;
             font-weight: 600;
@@ -97,7 +98,7 @@ st.markdown("""
             transition: all 0.2s ease-in-out;
         }
 
-        /* Maintenance Button (Primary Solid Red) */
+        /* Maintenance Button (Solid Red) */
         div.row-widget.stButton:nth-child(1) > button {
             background-color: #CE3834 !important;
             color: white !important;
@@ -109,7 +110,7 @@ st.markdown("""
             box-shadow: 0 4px 12px rgba(206, 56, 52, 0.3);
         }
 
-        /* Feedback Button (Secondary Outlined Red) */
+        /* Feedback Button (Outlined Red) */
         div.row-widget.stButton:nth-child(2) > button {
             background-color: transparent !important;
             color: #CE3834 !important;
@@ -120,9 +121,9 @@ st.markdown("""
             background-color: rgba(206, 56, 52, 0.05) !important;
         }
     </style>
-""", unsafe_allow_html=style_code if 'style_code' in locals() else "", unsafe_allow_html=True)
+""", unsafe_allow_html=True)
 
-# Main Header & Title Section
+# Main Header & Subtitle Section
 st.markdown(f"""
     <div class="main-container">
         <div class="brand-header">
@@ -134,13 +135,13 @@ st.markdown(f"""
     </div>
 """, unsafe_allow_html=True)
 
-# Centered Action Buttons
-col1, col2, col3, col4, col5 = st.columns([1, 2, 2, 2, 1])
+# Action Buttons Layout
+col1, col2, col3, col4, col5 = st.columns([1, 2, 0.5, 2, 1])
 
 with col2:
     if st.button("🏢 Maintenance", key="maint_btn"):
-        st.success("Redirecting to Maintenance portal...")
+        st.success("Redirecting to Maintenance...")
 
 with col4:
     if st.button("💬 Feedback", key="feed_btn"):
-        st.info("Redirecting to Feedback form...")
+        st.info("Redirecting to Feedback...")
