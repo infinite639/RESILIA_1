@@ -65,7 +65,7 @@ st.markdown("""
         }
 
         .brand-title {
-            font-size: 3.5rem;
+            font-size: 4rem;
             font-weight: 800;
             letter-spacing: 2px;
             color: #111827;
@@ -141,7 +141,7 @@ st.markdown(f"""
 """, unsafe_allow_html=True)
 
 # Perfectly Centered Action Buttons
-col1, col2, col3, col4, col5 = st.columns([1, 2, 0.4, 2, 1])
+col1, col2, col3, col4, col5 = st.columns([1, 2, 2, 2, 1])
 
 with col2:
     if st.button("🏢 Maintenance", key="maint_btn"):
