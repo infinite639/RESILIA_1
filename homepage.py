@@ -19,7 +19,7 @@ try:
     logo_html = f'<img src="data:image/png;base64,{logo_base64}" class="logo-img">'
 except FileNotFoundError:
     # Fallback shield if the file name isn't found
-    logo_html = '<div class="logo-placeholder" style="font-size: 2.5rem;">🛡️</div>'
+    logo_html = '<div class="logo-placeholder" style="font-size: 4rem;">🛡️</div>'
 
 # Custom CSS for styling
 st.markdown("""
@@ -36,32 +36,36 @@ st.markdown("""
         footer {visibility: hidden;}
         header {visibility: hidden;}
 
-        /* Main container layout */
+        /* Main container layout - Center everything vertically & horizontally */
         .main-container {
             display: flex;
             flex-direction: column;
             align-items: center;
             justify-content: center;
-            padding-top: 4rem;
+            padding-top: 3rem;
             text-align: center;
+            width: 100%;
         }
 
-        /* Header layout (Logo + Brand Name) */
+        /* Header layout (Logo + Brand Name centered together) */
         .brand-header {
             display: flex;
             align-items: center;
             justify-content: center;
-            gap: 16px;
-            margin-bottom: 20px;
+            gap: 20px;
+            margin-bottom: 24px;
+            width: 100%;
         }
 
+        /* Increased Logo Size */
         .logo-img {
-            width: 50px;
+            width: 90px;
             height: auto;
+            display: block;
         }
 
         .brand-title {
-            font-size: 3rem;
+            font-size: 3.5rem;
             font-weight: 800;
             letter-spacing: 2px;
             color: #111827;
@@ -71,9 +75,9 @@ st.markdown("""
 
         /* Red Divider Line */
         .divider {
-            width: 45px;
+            width: 50px;
             height: 3px;
-            background-color: #D32F2F;
+            background-color: #FF6F61;
             margin: 0 auto 28px auto;
             border-radius: 2px;
         }
@@ -85,12 +89,13 @@ st.markdown("""
             font-weight: 400;
             margin-bottom: 40px;
             line-height: 1.5;
+            text-align: center;
         }
 
         /* Custom Button Styles */
         div.stButton > button {
             width: 100%;
-            height: 50px;
+            height: 52px;
             border-radius: 8px;
             font-size: 1.05rem;
             font-weight: 600;
@@ -98,27 +103,27 @@ st.markdown("""
             transition: all 0.2s ease-in-out;
         }
 
-        /* Maintenance Button (Solid Red) */
+        /* Maintenance Button (Coral Red Solid) */
         div.row-widget.stButton:nth-child(1) > button {
-            background-color: #CE3834 !important;
+            background-color: #FF6F61 !important;
             color: white !important;
             border: none !important;
         }
 
         div.row-widget.stButton:nth-child(1) > button:hover {
-            background-color: #B52D2A !important;
-            box-shadow: 0 4px 12px rgba(206, 56, 52, 0.3);
+            background-color: #E05547 !important;
+            box-shadow: 0 4px 12px rgba(255, 111, 97, 0.35);
         }
 
-        /* Feedback Button (Outlined Red) */
+        /* Feedback Button (Coral Red Outlined) */
         div.row-widget.stButton:nth-child(2) > button {
             background-color: transparent !important;
-            color: #CE3834 !important;
-            border: 1.5px solid #CE3834 !important;
+            color: #FF6F61 !important;
+            border: 2px solid #FF6F61 !important;
         }
 
         div.row-widget.stButton:nth-child(2) > button:hover {
-            background-color: rgba(206, 56, 52, 0.05) !important;
+            background-color: rgba(255, 111, 97, 0.08) !important;
         }
     </style>
 """, unsafe_allow_html=True)
@@ -135,8 +140,8 @@ st.markdown(f"""
     </div>
 """, unsafe_allow_html=True)
 
-# Action Buttons Layout
-col1, col2, col3, col4, col5 = st.columns([1, 2, 0.5, 2, 1])
+# Perfectly Centered Action Buttons
+col1, col2, col3, col4, col5 = st.columns([1, 2, 0.4, 2, 1])
 
 with col2:
     if st.button("🏢 Maintenance", key="maint_btn"):
