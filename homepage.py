@@ -9,7 +9,7 @@ st.set_page_config(
 )
 
 # Function to encode image to base64 for seamless HTML embedding
-def get_image_base64(image_1.png):
+def get_image_base64(path):
     with open(image_1.png, "rb") as img_file:
         return base64.b64encode(img_file.read()).decode("utf-8")
 
