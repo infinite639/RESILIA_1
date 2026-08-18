@@ -149,6 +149,6 @@ with col2:
 
 with col4:
     if st.button("💬 Feedback", key="feed_btn"):
-        st.info("Redirecting to Feedback...")
+        st.switch_page("pages/feedback.py")
 
 
