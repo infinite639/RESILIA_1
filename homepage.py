@@ -146,7 +146,7 @@ col1, col2, col3, col4, col5 = st.columns([2, 2, 2, 2, 2])
 with col2:
     if st.button("🏢 Maintenance", key="maint_btn"):
         st.success("Redirecting to Maintenance...")
-        st.swtich_page(pages/maintenance.py)
+        st.swtich_page("maintenance.py")
 
 with col4:
     if st.button("💬 Feedback", key="feed_btn"):
