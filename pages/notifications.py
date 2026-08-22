@@ -229,7 +229,7 @@ with header_cols[1]:
         try:
             st.switch_page("app.py")
         except Exception:
-            st.switch_page("main.py")
+            st.switch_page("maintenance.py")
 
 with header_cols[2]:
     if st.button("💬 Feedback", use_container_width=True):
