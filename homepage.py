@@ -10,14 +10,15 @@ st.set_page_config(
 
 # -----------------------------------------------------------------------------
 # ANNOTATION 1: SESSION STATE INITIALIZATION FOR LIVE FEEDBACK SYNC
-# Stores feedback entries shared across pages/feedback.py and homepage.py
+# Initializes the shared 'feedback_list' in st.session_state if it doesn't exist yet.
+# When a user submits a form on pages/feedback.py, it prepends to this exact list.
 # -----------------------------------------------------------------------------
 if "feedback_list" not in st.session_state:
     st.session_state.feedback_list = [
         {
             "user": "Resident",
             "date": "Aug 22, 2026",
-            "text": "Water leaking from ceiling during heavy rain near main entrance.",
+            "text": "Water leaking from ceiling during heavy rain near entrance.",
             "priority": "High Priority",
             "building": "Building A17",
             "issue_type": "Water Management"
@@ -25,26 +26,10 @@ if "feedback_list" not in st.session_state:
         {
             "user": "Faculty Member",
             "date": "Aug 20, 2026",
-            "text": "Drainage backup observed in lower basement parking garage.",
+            "text": "Drainage backup observed in lower basement parking.",
             "priority": "Medium Priority",
             "building": "Building B04",
             "issue_type": "Drainage Systems"
-        },
-        {
-            "user": "Student Delegate",
-            "date": "Aug 19, 2026",
-            "text": "Elevator door sensor glitch on the 3rd floor wing B.",
-            "priority": "Medium Priority",
-            "building": "Building C02",
-            "issue_type": "Interior"
-        },
-        {
-            "user": "Property Manager",
-            "date": "Aug 15, 2026",
-            "text": "Exterior wall tile hairline cracks along north wall.",
-            "priority": "Low Priority",
-            "building": "Building A17",
-            "issue_type": "Exterior Walls"
         }
     ]
 
@@ -53,36 +38,41 @@ def get_image_base64(path):
     with open(path, "rb") as img_file:
         return base64.b64encode(img_file.read()).decode("utf-8")
 
-# Convert logo image to base64 string
+# Convert logo image to base64 string using your GitHub filename
 try:
     logo_base64 = get_image_base64("image_1.png")
     logo_html = f'<img src="data:image/png;base64,{logo_base64}" class="logo-img">'
 except FileNotFoundError:
+    # Fallback shield if the file name isn't found
     logo_html = '<div class="logo-placeholder" style="font-size: 4rem;">🛡️</div>'
 
 # Custom CSS for styling
 st.markdown("""
     <style>
+        /* Base page background */
         .stApp {
             background-color: #FAF6F0;
             color: #1A1A1A;
             font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
         }
 
+        /* Hide standard Streamlit chrome */
         #MainMenu {visibility: hidden;}
         footer {visibility: hidden;}
         header {visibility: hidden;}
 
+        /* Main container layout - Center everything vertically & horizontally */
         .main-container {
             display: flex;
             flex-direction: column;
             align-items: center;
             justify-content: center;
-            padding-top: 2rem;
+            padding-top: 3rem;
             text-align: center;
             width: 100%;
         }
 
+        /* Header layout (Logo + Brand Name centered together) */
         .brand-header {
             display: flex;
             align-items: center;
@@ -92,6 +82,7 @@ st.markdown("""
             width: 100%;
         }
 
+        /* Increased Logo Size */
         .logo-img {
             width: 90px;
             height: auto;
@@ -107,6 +98,7 @@ st.markdown("""
             line-height: 1;
         }
 
+        /* Red Divider Line */
         .divider {
             width: 50px;
             height: 3px;
@@ -115,16 +107,17 @@ st.markdown("""
             border-radius: 2px;
         }
 
+        /* Subtitle Text */
         .subtitle {
             font-size: 1.25rem;
             color: #2D3748;
             font-weight: 400;
-            margin-bottom: 30px;
+            margin-bottom: 40px;
             line-height: 1.5;
             text-align: center;
         }
 
-        /* Standard Navigation Button Styles */
+        /* Custom Button Styles */
         div.stButton > button {
             width: 100%;
             height: 52px;
@@ -135,6 +128,7 @@ st.markdown("""
             transition: all 0.2s ease-in-out;
         }
 
+        /* Maintenance Button (Coral Red Solid) */
         div.row-widget.stButton:nth-child(1) > button {
             background-color: #bf3e32 !important;
             color: white !important;
@@ -146,6 +140,7 @@ st.markdown("""
             box-shadow: 0 4px 12px rgba(255, 111, 97, 0.35);
         }
 
+        /* Feedback Button (Coral Red Outlined) */
         div.row-widget.stButton:nth-child(2) > button {
             background-color: transparent !important;
             color: #bf3e32 !important;
@@ -156,37 +151,15 @@ st.markdown("""
             background-color: rgba(255, 111, 97, 0.08) !important;
         }
 
-        /* -------------------------------------------------------------------------
-           ANNOTATION 2: FIXED HEIGHT SCROLLABLE CONTAINER FOR FEEDBACK CARDS
-           Restricts height to 280px and adds a vertical scrollbar.
-           ------------------------------------------------------------------------- */
-        .scroll-box {
-            max-height: 280px;
-            overflow-y: scroll;
-            padding-right: 10px;
-            border: 1px solid #E5E7EB;
-            border-radius: 12px;
-            background-color: #FAF6F0;
-            padding: 12px;
-        }
-
-        .scroll-box::-webkit-scrollbar {
-            width: 7px;
-        }
-
-        .scroll-box::-webkit-scrollbar-thumb {
-            background-color: #CBD5E1;
-            border-radius: 4px;
-        }
-
+        /* ANNOTATION 2: CARD STYLING FOR RECENT FEEDBACK DISPLAY */
         .feedback-card {
             background-color: #FFFFFF;
             border: 1px solid #E5E7EB;
-            border-radius: 10px;
-            padding: 14px;
-            margin-bottom: 10px;
+            border-radius: 12px;
+            padding: 16px;
+            margin-bottom: 12px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.02);
             text-align: left;
-            box-shadow: 0 1px 2px rgba(0,0,0,0.02);
         }
 
         .badge-high {
@@ -206,24 +179,6 @@ st.markdown("""
             font-size: 0.75rem;
             font-weight: 700;
         }
-
-        /* -------------------------------------------------------------------------
-           ANNOTATION 3: YELLOW BOX OVERRIDE FOR REPORT ISSUE BUTTON
-           ------------------------------------------------------------------------- */
-        div.stButton > button[key="yellow_report_btn"] {
-            background-color: #F59E0B !important;
-            color: #FFFFFF !important;
-            border: none !important;
-            border-radius: 8px !important;
-            font-weight: 700 !important;
-            font-size: 0.95rem !important;
-            height: 48px !important;
-        }
-
-        div.stButton > button[key="yellow_report_btn"]:hover {
-            background-color: #D97706 !important;
-            box-shadow: 0 4px 10px rgba(245, 158, 11, 0.3) !important;
-        }
     </style>
 """, unsafe_allow_html=True)
 
@@ -239,7 +194,7 @@ st.markdown(f"""
     </div>
 """, unsafe_allow_html=True)
 
-# Action Buttons Grid
+# Perfectly Centered Action Buttons
 col1, col2, col3, col4, col5 = st.columns([2, 2, 2, 2, 2])
 
 with col2:
@@ -256,56 +211,30 @@ with col4:
         except Exception:
             st.switch_page("feedback.py")
 
+# -----------------------------------------------------------------------------
+# ANNOTATION 3: RECENT FEEDBACK STREAM DISPLAY
+# Reads st.session_state.feedback_list dynamically and renders all feedback cards.
+# Any form submitted on pages/feedback.py instantly populates at the top here.
+# -----------------------------------------------------------------------------
 st.write("")
-
-# -----------------------------------------------------------------------------
-# ANNOTATION 4: YELLOW CATEGORY BOX CONTAINING "REPORT THE ISSUE" BUTTON
-# -----------------------------------------------------------------------------
-y_box_col1, y_box_col2 = st.columns([3, 1.3])
-
-with y_box_col1:
-    st.markdown("""
-        <div style="background-color: #FEF3C7; border: 1.5px solid #FCD34D; border-radius: 12px; padding: 14px 18px;">
-            <div style="display: flex; align-items: center; gap: 12px;">
-                <span style="font-size: 1.6rem;">⚠️</span>
-                <div>
-                    <strong style="color: #92400E; font-size: 1.05rem;">Need to Report a Hazard?</strong><br>
-                    <span style="color: #78350F; font-size: 0.88rem;">Submit infrastructural issues directly to emergency management.</span>
-                </div>
-            </div>
-        </div>
-    """, unsafe_allow_html=True)
-
-with y_box_col2:
-    if st.button("📢 Report the Issue", key="yellow_report_btn", use_container_width=True):
-        try:
-            st.switch_page("pages/feedback.py")
-        except Exception:
-            st.switch_page("feedback.py")
-
-# -----------------------------------------------------------------------------
-# ANNOTATION 5: SCROLLABLE FEEDBACK SECTION (COMPILED HTML BLOCK)
-# Prevents page extension by containing all feedback items inside an inline scroll container.
-# -----------------------------------------------------------------------------
-st.markdown("<h3 style='text-align: center; font-weight: 700; color: #111827; margin-top: 30px; margin-bottom: 12px;'>📢 Community Feedback Stream</h3>", unsafe_allow_html=True)
+st.write("")
+st.markdown("<hr style='border: 0; height: 1px; background: #E5E7EB; margin: 30px 0 20px 0;'>", unsafe_allow_html=True)
+st.markdown("<h3 style='text-align: center; font-weight: 700; color: #111827; margin-bottom: 16px;'>📢 Recent Community Feedback</h3>", unsafe_allow_html=True)
 
 if not st.session_state.feedback_list:
-    st.info("No feedback records submitted yet.")
+    st.info("No feedback records available yet.")
 else:
-    # Build complete HTML string for the scrollbox to avoid auto-closing tags
-    feedback_html = '<div class="scroll-box">'
-    
     for item in st.session_state.feedback_list:
         priority_label = item.get("priority", "Low Priority")
         badge_class = "badge-high" if ("High" in priority_label or "Critical" in priority_label) else "badge-medium"
         
-        feedback_html += f"""
+        st.markdown(f"""
             <div class="feedback-card">
                 <div style="display: flex; justify-content: space-between; align-items: center;">
-                    <strong style="color: #111827; font-size: 0.95rem;">{item['user']}</strong>
+                    <span style="font-weight: 700; color: #111827; font-size: 0.95rem;">{item['user']}</span>
                     <span style="font-size: 0.8rem; color: #6B7280;">{item['date']}</span>
                 </div>
-                <p style="font-size: 0.88rem; color: #374151; margin: 8px 0; line-height: 1.4;">
+                <p style="font-size: 0.88rem; color: #374151; margin: 8px 0 10px 0; line-height: 1.4;">
                     {item['text']}
                 </p>
                 <div style="display: flex; justify-content: space-between; align-items: center;">
@@ -313,9 +242,4 @@ else:
                     <span class="{badge_class}">{priority_label}</span>
                 </div>
             </div>
-        """
-        
-    feedback_html += '</div>'
-    
-    # Render entire scroll box in one single call
-    st.markdown(feedback_html, unsafe_allow_html=True)
+        """, unsafe_allow_html=True)
