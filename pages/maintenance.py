@@ -11,7 +11,6 @@ def show_aspect_modal(category_name, status_color):
     st.caption(f"Status Indicator: **{status_color}**")
     st.divider()
     
-    # Placeholder container reserved for backend AI models
     st.info("🤖 **Backend AI Model Integration Space**\n\nDiagnostic telemetry, model outputs, and detailed sensory metrics for this aspect will be rendered here.")
     
     if st.button("Close Modal"):
@@ -22,27 +21,23 @@ def show_aspect_modal(category_name, status_color):
 # -----------------------------------------------------------------------------
 st.markdown("""
     <style>
-        /* Base page background */
         .stApp {
             background-color: #FAF6F0;
             color: #111827;
             font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
         }
 
-        /* Hide default Streamlit elements */
         #MainMenu, footer, header { visibility: hidden; }
 
-        /* General Card Box Styling */
         .card-box {
             background-color: #FFFFFF;
-            padding: 18px;
+            padding: 16px;
             border-radius: 10px;
             border: 1px solid #E5E7EB;
             box-shadow: 0 1px 2px rgba(0,0,0,0.03);
-            margin-bottom: 15px;
+            margin-bottom: 12px;
         }
 
-        /* Map Placeholder Area */
         .map-placeholder {
             width: 100%;
             height: 380px;
@@ -57,7 +52,6 @@ st.markdown("""
             margin-bottom: 15px;
         }
 
-        /* Red Flag Box */
         .flag-box {
             background-color: #FEF2F2;
             border: 1px solid #FCA5A5;
@@ -67,7 +61,6 @@ st.markdown("""
             margin-bottom: 15px;
         }
 
-        /* Feedback Priority Badges */
         .badge-high {
             background-color: #FEE2E2;
             color: #DC2626;
@@ -85,29 +78,7 @@ st.markdown("""
             font-weight: 600;
         }
 
-        /* -------------------------------------------------------------------------
-           ANNOTATION 1: SCROLLABLE CONTAINER FOR RIGHT-PANEL FEEDBACK STREAM
-           Prevents page overflow by keeping all feedback cards inside a scroll box.
-           ------------------------------------------------------------------------- */
-        .feedback-scroll-container {
-            max-height: 260px;
-            overflow-y: scroll;
-            padding-right: 6px;
-            margin-bottom: 15px;
-        }
-
-        .feedback-scroll-container::-webkit-scrollbar {
-            width: 6px;
-        }
-
-        .feedback-scroll-container::-webkit-scrollbar-thumb {
-            background-color: #CBD5E1;
-            border-radius: 4px;
-        }
-
-        /* -------------------------------------------------------------------------
-           ANNOTATION 2: CUSTOM STYLING FOR YELLOW "REPORT AN ISSUE" BUTTON
-           ------------------------------------------------------------------------- */
+        /* ANNOTATION 1: CUSTOM STYLING FOR REPORT AN ISSUE BUTTON */
         div.stButton > button[key="btn_report_an_issue"] {
             background-color: #D97706 !important;
             color: #FFFFFF !important;
@@ -115,7 +86,7 @@ st.markdown("""
             border-radius: 6px !important;
             font-weight: 700 !important;
             font-size: 0.9rem !important;
-            height: 42px !important;
+            height: 44px !important;
         }
 
         div.stButton > button[key="btn_report_an_issue"]:hover {
@@ -160,7 +131,7 @@ with nav_col3:
 st.divider()
 
 # -----------------------------------------------------------------------------
-# 2. MAIN DASHBOARD GRID (Left Sidebar, Center Canvas, Right Panel)
+# 2. MAIN DASHBOARD GRID
 # -----------------------------------------------------------------------------
 left_col, center_col, right_col = st.columns([1.2, 3, 1.4])
 
@@ -192,7 +163,6 @@ with left_col:
 
 # --- CENTER CANVAS: BUILDING DETAILS & MAP PLACEHOLDER ---
 with center_col:
-    # Building Metadata Card
     st.markdown("""
         <div class="card-box">
             <div style="display: flex; justify-content: space-between; align-items: center;">
@@ -208,20 +178,17 @@ with center_col:
         </div>
     """, unsafe_allow_html=True)
 
-    # View Controls Row
     v1, v2, v3, _ = st.columns([1, 1, 1, 3])
     with v1: st.button("Aerial View", use_container_width=True)
     with v2: st.button("Map View", use_container_width=True)
     with v3: st.button("Street View", use_container_width=True)
 
-    # Blank Map Area Placeholder
     st.markdown("""
         <div class="map-placeholder">
             [ Map View Area Placeholder — Ready for GPS Map Integration ]
         </div>
     """, unsafe_allow_html=True)
 
-    # Lower AI Insights Area Blocks (Under Map)
     st.subheader("AI Insights")
     i1, i2, i3, i4 = st.columns(4)
     
@@ -245,9 +212,8 @@ with center_col:
         if st.button("View Details →", key="vi_4"):
             show_aspect_modal("Exterior Walls", "Yellow")
 
-# --- RIGHT SIDEBAR: FLAGS, AI SUMMARY, FEEDBACK & REPORT ---
+# --- RIGHT SIDEBAR: FLAGS, AI SUMMARY, SCROLLABLE FEEDBACK & REPORT ---
 with right_col:
-    # Flagged Issues Banner
     st.markdown("""
         <div class="flag-box">
             <h4 style="margin: 0;">🚨 3 Issues Flagged</h4>
@@ -255,7 +221,6 @@ with right_col:
         </div>
     """, unsafe_allow_html=True)
 
-    # Blank AI Summary Space
     st.markdown("""
         <div class="card-box">
             <h4>AI Summary</h4>
@@ -269,12 +234,11 @@ with right_col:
         st.info("Full AI analysis view placeholder.")
 
     # -------------------------------------------------------------------------
-    # ANNOTATION 3: SCROLLABLE RECENT FEEDBACK STREAM
-    # Renders all entries from st.session_state inside a fixed-height scroll container.
+    # ANNOTATION 2: NATIVE STREAMLIT SCROLL CONTAINER FOR FEEDBACK
+    # Creates an internal scroll area limited to 270px height.
     # -------------------------------------------------------------------------
     st.subheader("Recent Feedback")
     
-    # Initialize default feedback examples in session state if not present
     if "feedback_list" not in st.session_state:
         st.session_state.feedback_list = [
             {
@@ -297,30 +261,26 @@ with right_col:
             }
         ]
 
-    # Single string builder to prevent Streamlit from closing open HTML tags
-    feedback_cards_html = '<div class="feedback-scroll-container">'
-    for fb in st.session_state.feedback_list:
-        badge_class = "badge-high" if "High" in fb["priority"] else "badge-medium"
-        feedback_cards_html += f"""
-            <div class="card-box">
-                <div style="display: flex; justify-content: space-between;">
-                    <b>{fb['user']}</b>
-                    <small style="color: #9CA3AF;">{fb['date']}</small>
+    with st.container(height=270):
+        for fb in st.session_state.feedback_list:
+            badge_class = "badge-high" if "High" in fb["priority"] else "badge-medium"
+            st.markdown(f"""
+                <div class="card-box">
+                    <div style="display: flex; justify-content: space-between;">
+                        <b>{fb['user']}</b>
+                        <small style="color: #9CA3AF;">{fb['date']}</small>
+                    </div>
+                    <p style="font-size: 0.85rem; margin: 8px 0; color: #374151;">{fb['text']}</p>
+                    <span class="{badge_class}">{fb['priority']}</span>
                 </div>
-                <p style="font-size: 0.85rem; margin: 8px 0; color: #374151;">{fb['text']}</p>
-                <span class="{badge_class}">{fb['priority']}</span>
-            </div>
-        """
-    feedback_cards_html += '</div>'
-    
-    st.markdown(feedback_cards_html, unsafe_allow_html=True)
+            """, unsafe_allow_html=True)
 
     # -------------------------------------------------------------------------
-    # ANNOTATION 4: YELLOW BOX CONTAINING "REPORT THE ISSUE" BUTTON
-    # Navigates directly to pages/feedback.py when clicked.
+    # ANNOTATION 3: YELLOW BOX CONTAINING "REPORT THE ISSUE" BUTTON
+    # Direct routing button targeting pages/feedback.py.
     # -------------------------------------------------------------------------
     st.markdown("""
-        <div style="background-color: #FEF3C7; border: 1.5px solid #FCD34D; border-radius: 10px; padding: 14px; text-align: center; margin-top: 10px;">
+        <div style="background-color: #FEF3C7; border: 1.5px solid #FCD34D; border-radius: 10px; padding: 14px; text-align: center; margin-top: 15px;">
             <b style="color: #92400E; font-size: 0.95rem;">📝 REPORT AN ISSUE</b><br>
             <small style="color: #78350F; display: block; margin-bottom: 10px;">Log maintenance hazards directly to dispatch</small>
         </div>
@@ -366,6 +326,5 @@ with cnt5:
     st.markdown("<b>Emergency</b><br><small>Emergency Services — 999</small>", unsafe_allow_html=True)
     if st.button("Call Now", key="cnt_btn_5"): nav_to_contacts()
 
-# Footer Credits
 st.divider()
 st.caption("© 2026 RESILIA. All rights reserved. | About Us | How It Works | Privacy Policy | Terms of Use | Data Sources | Contact Us")
