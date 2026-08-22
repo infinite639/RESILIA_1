@@ -1,4 +1,5 @@
 import streamlit as st
+from textwrap import dedent
 
 # ============================================================
 # PAGE CONFIG
@@ -8,22 +9,11 @@ st.set_page_config(
     page_title="RESILIA — Contacts",
     page_icon="🏠",
     layout="wide",
-    initial_sidebar_state="collapsed"
+    initial_sidebar_state="collapsed",
 )
 
 # ============================================================
-# SESSION STATE
-# ============================================================
-
-if "open_contact" not in st.session_state:
-    st.session_state.open_contact = None
-
-if "help_contact" not in st.session_state:
-    st.session_state.help_contact = None
-
-
-# ============================================================
-# DATA
+# CONTACT DATA
 # ============================================================
 
 contacts = [
@@ -110,563 +100,516 @@ contacts = [
     },
 ]
 
+# ============================================================
+# SESSION STATE
+# ============================================================
+
+if "open_contact" not in st.session_state:
+    st.session_state.open_contact = None
+
+if "help_contact" not in st.session_state:
+    st.session_state.help_contact = None
+
 
 # ============================================================
 # CSS
 # ============================================================
 
 st.markdown(
-    """
-<style>
-
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
-
-/* ----------------------------------------------------------
-   GLOBAL
----------------------------------------------------------- */
-
-html, body, [class*="css"] {
-    font-family: 'Inter', sans-serif;
-}
-
-.stApp {
-    background: #ffffff;
-    color: #101827;
-}
-
-.block-container {
-    max-width: 1490px !important;
-    padding: 0 20px 20px 20px !important;
-}
-
-
-/* Remove Streamlit default spacing */
-
-div[data-testid="stVerticalBlock"] {
-    gap: 0;
-}
-
-
-/* ----------------------------------------------------------
-   TOP HEADER
----------------------------------------------------------- */
-
-.top-header {
-    height: 78px;
-    display: flex;
-    align-items: center;
-    border-bottom: 1px solid #edf0f3;
-    margin-bottom: 28px;
-}
-
-.brand-area {
-    width: 410px;
-    display: flex;
-    align-items: center;
-}
-
-.logo-shield {
-    width: 42px;
-    height: 42px;
-    border: 3px solid #182230;
-    border-radius: 8px 8px 13px 13px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    margin-right: 12px;
-    font-size: 20px;
-    color: #f0b51b;
-    position: relative;
-}
-
-.logo-shield:after {
-    content: "";
-    position: absolute;
-    width: 13px;
-    height: 13px;
-    border: 2px solid #f0b51b;
-    border-radius: 2px;
-}
-
-.brand-name {
-    font-size: 28px;
-    font-weight: 700;
-    letter-spacing: 1px;
-    color: #17202c;
-}
-
-.brand-tagline {
-    font-size: 13px;
-    line-height: 19px;
-    color: #202735;
-    margin-left: 24px;
-}
-
-.search-box {
-    height: 48px;
-    flex: 1;
-    max-width: 470px;
-    border: 1px solid #e0e4e9;
-    border-radius: 11px;
-    display: flex;
-    align-items: center;
-    color: #6b7280;
-    overflow: hidden;
-    margin-left: 20px;
-}
-
-.search-icon {
-    font-size: 20px;
-    margin-left: 16px;
-}
-
-.search-text {
-    font-size: 14px;
-    margin-left: 15px;
-}
-
-.search-button {
-    margin-left: auto;
-    height: 48px;
-    width: 52px;
-    background: #ffedc3;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    color: #111827;
-    font-size: 20px;
-}
-
-.header-right {
-    margin-left: auto;
-    display: flex;
-    align-items: center;
-    gap: 34px;
-}
-
-.header-item {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    font-size: 14px;
-    color: #101827;
-}
-
-.notification {
-    position: relative;
-}
-
-.notification-badge {
-    position: absolute;
-    top: -10px;
-    left: 13px;
-    width: 19px;
-    height: 19px;
-    border-radius: 50%;
-    background: #e22d2d;
-    color: white;
-    font-size: 10px;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-}
-
-.user-area {
-    display: flex;
-    flex-direction: column;
-    min-width: 115px;
-}
-
-.user-name {
-    font-size: 14px;
-    font-weight: 600;
-}
-
-.user-role {
-    font-size: 12px;
-    color: #69717e;
-    margin-top: 5px;
-}
-
-
-/* ----------------------------------------------------------
-   PAGE HEADER
----------------------------------------------------------- */
-
-.page-heading {
-    display: flex;
-    align-items: center;
-    margin: 0 0 26px 0;
-}
-
-.page-title {
-    font-size: 23px;
-    font-weight: 700;
-    margin-bottom: 7px;
-}
-
-.page-subtitle {
-    font-size: 13px;
-    color: #394150;
-}
-
-
-/* ----------------------------------------------------------
-   TOP ALERTS
----------------------------------------------------------- */
-
-.alert-row {
-    display: flex;
-    gap: 22px;
-    margin-left: auto;
-}
-
-.alert-box {
-    height: 62px;
-    border: 1px solid #f0e4c5;
-    border-radius: 9px;
-    padding: 10px 20px;
-    min-width: 350px;
-    display: flex;
-    align-items: center;
-    background: #fffdfa;
-}
-
-.emergency-box {
-    border-color: #ffd4d4;
-    background: #fffafa;
-}
-
-.alert-icon {
-    font-size: 25px;
-    margin-right: 18px;
-}
-
-.alert-title {
-    font-size: 14px;
-    font-weight: 600;
-}
-
-.alert-description {
-    font-size: 12px;
-    color: #69717e;
-    margin-top: 4px;
-}
-
-.emergency-box .alert-title {
-    color: #e33232;
-}
-
-
-/* ----------------------------------------------------------
-   CONTACT GRID
----------------------------------------------------------- */
-
-.contact-grid {
-    display: grid;
-    grid-template-columns: repeat(3, 1fr);
-    gap: 18px;
-    margin-top: 5px;
-}
-
-
-/* ----------------------------------------------------------
-   CONTACT CARD
----------------------------------------------------------- */
-
-.contact-card {
-    min-height: 235px;
-    border: 1px solid #e4e8ec;
-    border-radius: 11px;
-    padding: 18px 18px 16px 18px;
-    background: #ffffff;
-    box-sizing: border-box;
-    transition: 0.15s ease;
-}
-
-.contact-card:hover {
-    box-shadow: 0 5px 18px rgba(20, 30, 40, 0.06);
-}
-
-.card-top {
-    display: flex;
-    align-items: flex-start;
-}
-
-.category-icon {
-    width: 54px;
-    height: 54px;
-    border-radius: 50%;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 27px;
-    margin-right: 17px;
-    flex-shrink: 0;
-}
-
-.icon-blue {
-    background: #f1f8ff;
-    color: #1770ad;
-}
-
-.icon-yellow {
-    background: #fff9e9;
-    color: #f5b600;
-}
-
-.icon-grey {
-    background: #f4f5f6;
-    color: #394353;
-}
-
-.icon-orange {
-    background: #fff5ef;
-    color: #f07819;
-}
-
-.icon-red {
-    background: #fff1f1;
-    color: #e33333;
-}
-
-.icon-green {
-    background: #eef9f1;
-    color: #228847;
-}
-
-.category-content {
-    flex: 1;
-}
-
-.category-title {
-    font-size: 14px;
-    font-weight: 600;
-    color: #121a28;
-    margin-bottom: 8px;
-}
-
-.authority {
-    font-size: 12px;
-    color: #2f3744;
-    line-height: 18px;
-}
-
-.dropdown {
-    font-size: 18px;
-    color: #101827;
-}
-
-
-/* ----------------------------------------------------------
-   CONTACT PERSON
----------------------------------------------------------- */
-
-.person-area {
-    margin-top: 18px;
-    display: flex;
-    align-items: center;
-}
-
-.person-details {
-    flex: 1;
-}
-
-.person-name {
-    font-size: 12px;
-    color: #141b27;
-    margin-bottom: 7px;
-}
-
-.person-phone {
-    font-size: 12px;
-    color: #202735;
-}
-
-.contact-button {
-    background: #ffedc3;
-    border-radius: 7px;
-    padding: 11px 27px;
-    font-size: 12px;
-    font-weight: 500;
-    color: #101010;
-}
-
-
-/* ----------------------------------------------------------
-   EXPANDED CONTACT CONTROLS
----------------------------------------------------------- */
-
-.action-row {
-    display: flex;
-    gap: 14px;
-    margin-top: 18px;
-}
-
-.help-button {
-    height: 50px;
-    border: 1px solid #e0e5e9;
-    border-radius: 8px;
-    flex: 1;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 10px;
-    font-size: 12px;
-    background: #ffffff;
-}
-
-.call-button {
-    height: 50px;
-    width: 88px;
-    border: 1px solid #a9d9b1;
-    border-radius: 8px;
-    color: #23853f;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 21px;
-    background: #ffffff;
-}
-
-.action-note {
-    margin-top: 10px;
-    font-size: 11px;
-    color: #6b7280;
-}
-
-
-/* ----------------------------------------------------------
-   STREAMLIT BUTTON OVERRIDES
----------------------------------------------------------- */
-
-div.stButton > button {
-    font-family: 'Inter', sans-serif;
-    border-radius: 7px;
-    border: 1px solid #e0e4e9;
-    background: #ffffff;
-    color: #111827;
-    font-size: 12px;
-    height: 39px;
-}
-
-div.stButton > button:hover {
-    border-color: #d6b85d;
-    color: #111827;
-}
-
-
-/* Contact button */
-
-.contact-btn div.stButton > button {
-    background: #ffedc3;
-    border: none;
-}
-
-
-/* Call button */
-
-.call-btn div.stButton > button {
-    height: 50px;
-    color: #23853f;
-    border-color: #a9d9b1;
-    font-size: 20px;
-}
-
-
-/* Help button */
-
-.help-btn div.stButton > button {
-    height: 50px;
-}
-
-
-/* ----------------------------------------------------------
-   FOOTER
----------------------------------------------------------- */
-
-.footer {
-    border-top: 1px solid #edf0f3;
-    margin-top: 26px;
-    padding-top: 22px;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    color: #626b78;
-    font-size: 11px;
-}
-
-.footer-links {
-    display: flex;
-    gap: 18px;
-}
-
-.footer-separator {
-    color: #c8ccd1;
-}
-
-.footer-right {
-    margin-left: auto;
-}
-
-
-/* ----------------------------------------------------------
-   RESPONSIVE
----------------------------------------------------------- */
-
-@media (max-width: 1100px) {
-
-    .contact-grid {
-        grid-template-columns: repeat(2, 1fr);
-    }
-
-    .brand-tagline {
-        display: none;
-    }
-
-    .header-right {
-        gap: 15px;
-    }
-
-}
-
-@media (max-width: 750px) {
-
-    .contact-grid {
-        grid-template-columns: 1fr;
-    }
-
-    .search-box {
-        display: none;
-    }
-
-    .alert-row {
-        display: none;
-    }
-
-    .brand-area {
-        width: auto;
-    }
-
-    .header-right {
-        margin-left: auto;
-    }
-
-    .header-item span {
-        display: none;
-    }
-
-    .footer {
-        flex-direction: column;
-        gap: 15px;
-        align-items: flex-start;
-    }
-
-}
-
-</style>
-""",
-    unsafe_allow_html=True
+    dedent(
+        """
+        <style>
+
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+
+        /* ==================================================
+           GLOBAL
+        ================================================== */
+
+        html, body, [class*="css"] {
+            font-family: 'Inter', sans-serif;
+        }
+
+        .stApp {
+            background: #ffffff;
+            color: #111827;
+        }
+
+        .block-container {
+            max-width: 1500px !important;
+            padding-top: 0 !important;
+            padding-left: 22px !important;
+            padding-right: 22px !important;
+            padding-bottom: 20px !important;
+        }
+
+        /* Remove default Streamlit vertical gaps */
+        div[data-testid="stVerticalBlock"] {
+            gap: 0;
+        }
+
+        /* ==================================================
+           HEADER
+        ================================================== */
+
+        .top-header {
+            height: 78px;
+            border-bottom: 1px solid #edf0f3;
+            display: flex;
+            align-items: center;
+            margin-bottom: 28px;
+        }
+
+        .brand-area {
+            display: flex;
+            align-items: center;
+            width: 410px;
+            flex-shrink: 0;
+        }
+
+        .logo-shield {
+            width: 39px;
+            height: 43px;
+            border: 3px solid #17202c;
+            border-radius: 8px 8px 14px 14px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #f0b51b;
+            font-size: 17px;
+            margin-right: 12px;
+            box-sizing: border-box;
+        }
+
+        .brand-name {
+            font-size: 28px;
+            line-height: 30px;
+            font-weight: 700;
+            letter-spacing: 1px;
+            color: #17202c;
+        }
+
+        .brand-tagline {
+            font-size: 12px;
+            line-height: 18px;
+            color: #252c38;
+            margin-left: 25px;
+        }
+
+        .search-box {
+            height: 47px;
+            width: 465px;
+            border: 1px solid #e1e5e9;
+            border-radius: 11px;
+            display: flex;
+            align-items: center;
+            overflow: hidden;
+            color: #68717d;
+        }
+
+        .search-location {
+            font-size: 19px;
+            margin-left: 16px;
+        }
+
+        .search-placeholder {
+            margin-left: 13px;
+            font-size: 14px;
+        }
+
+        .search-button {
+            margin-left: auto;
+            width: 51px;
+            height: 47px;
+            background: #ffedc3;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            color: #111827;
+            font-size: 21px;
+        }
+
+        .header-right {
+            margin-left: auto;
+            display: flex;
+            align-items: center;
+            gap: 32px;
+        }
+
+        .header-item {
+            display: flex;
+            align-items: center;
+            gap: 9px;
+            font-size: 14px;
+            color: #111827;
+            white-space: nowrap;
+        }
+
+        .notification {
+            position: relative;
+        }
+
+        .notification-badge {
+            position: absolute;
+            top: -11px;
+            left: 13px;
+            width: 19px;
+            height: 19px;
+            border-radius: 50%;
+            background: #df3030;
+            color: #ffffff;
+            font-size: 10px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .user-area {
+            display: flex;
+            flex-direction: column;
+            min-width: 105px;
+        }
+
+        .user-name {
+            font-size: 14px;
+            font-weight: 600;
+        }
+
+        .user-role {
+            color: #6b7280;
+            font-size: 12px;
+            margin-top: 5px;
+        }
+
+        /* ==================================================
+           PAGE TITLE
+        ================================================== */
+
+        .title-area {
+            display: flex;
+            align-items: center;
+            min-height: 65px;
+        }
+
+        .page-title {
+            font-size: 23px;
+            font-weight: 700;
+            color: #111827;
+            margin-bottom: 6px;
+        }
+
+        .page-subtitle {
+            font-size: 13px;
+            color: #3e4652;
+        }
+
+        /* ==================================================
+           ALERTS
+        ================================================== */
+
+        .alert-card {
+            height: 62px;
+            border: 1px solid #f0e1bc;
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            padding: 0 20px;
+            box-sizing: border-box;
+            background: #fffdfa;
+        }
+
+        .emergency-alert {
+            border-color: #ffd0d0;
+            background: #fffafa;
+        }
+
+        .alert-icon {
+            font-size: 26px;
+            margin-right: 18px;
+        }
+
+        .alert-title {
+            font-size: 14px;
+            font-weight: 600;
+            color: #111827;
+        }
+
+        .emergency-alert .alert-title {
+            color: #e33131;
+        }
+
+        .alert-description {
+            margin-top: 5px;
+            font-size: 12px;
+            color: #6a7280;
+        }
+
+        /* ==================================================
+           GRID
+        ================================================== */
+
+        .contact-card-wrapper {
+            border: 1px solid #e3e7eb;
+            border-radius: 11px;
+            background: #ffffff;
+            min-height: 245px;
+            box-sizing: border-box;
+            padding: 18px;
+            margin-bottom: 0;
+        }
+
+        .card-top {
+            display: flex;
+            align-items: flex-start;
+            min-height: 64px;
+        }
+
+        .category-icon {
+            width: 54px;
+            height: 54px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+            margin-right: 16px;
+            font-size: 26px;
+        }
+
+        .icon-blue {
+            background: #f0f7fd;
+            color: #1471ad;
+        }
+
+        .icon-yellow {
+            background: #fff9e9;
+            color: #f4b500;
+        }
+
+        .icon-grey {
+            background: #f3f5f7;
+            color: #3c4654;
+        }
+
+        .icon-orange {
+            background: #fff4ec;
+            color: #ef7419;
+        }
+
+        .icon-red {
+            background: #fff0f0;
+            color: #e33131;
+        }
+
+        .icon-green {
+            background: #edf8f0;
+            color: #218846;
+        }
+
+        .category-content {
+            flex: 1;
+        }
+
+        .category-title {
+            font-size: 14px;
+            font-weight: 600;
+            color: #111827;
+            margin-bottom: 7px;
+        }
+
+        .authority {
+            font-size: 12px;
+            line-height: 18px;
+            color: #303845;
+        }
+
+        .dropdown {
+            font-size: 18px;
+            color: #111827;
+            margin-left: 8px;
+        }
+
+        /* ==================================================
+           PERSON
+        ================================================== */
+
+        .person-row {
+            display: flex;
+            align-items: center;
+            margin-top: 19px;
+        }
+
+        .person-info {
+            flex: 1;
+        }
+
+        .person-name {
+            font-size: 12px;
+            color: #111827;
+            margin-bottom: 7px;
+        }
+
+        .person-phone {
+            font-size: 12px;
+            color: #252d39;
+        }
+
+        /* ==================================================
+           STREAMLIT BUTTONS
+        ================================================== */
+
+        .contact-button-container {
+            margin-top: -47px;
+            margin-left: auto;
+            width: 98px;
+            position: relative;
+            z-index: 2;
+        }
+
+        .contact-button-container button {
+            height: 38px !important;
+            background: #ffedc3 !important;
+            border: none !important;
+            border-radius: 7px !important;
+            color: #111827 !important;
+            font-size: 12px !important;
+            font-weight: 500 !important;
+        }
+
+        .contact-button-container button:hover {
+            background: #ffe6aa !important;
+        }
+
+        /* ==================================================
+           EXPANDED ACTIONS
+        ================================================== */
+
+        .action-area {
+            margin-top: 20px;
+            display: flex;
+            gap: 13px;
+        }
+
+        .help-button-container {
+            flex: 1;
+        }
+
+        .help-button-container button {
+            height: 49px !important;
+            border: 1px solid #e0e4e8 !important;
+            border-radius: 8px !important;
+            background: #ffffff !important;
+            color: #202734 !important;
+            font-size: 12px !important;
+        }
+
+        .help-button-container button:hover {
+            border-color: #cfd5da !important;
+            background: #fafafa !important;
+        }
+
+        .call-button-container {
+            width: 88px;
+        }
+
+        .call-button-container button {
+            height: 49px !important;
+            border: 1px solid #9bd4a5 !important;
+            border-radius: 8px !important;
+            background: #ffffff !important;
+            color: #248743 !important;
+            font-size: 20px !important;
+        }
+
+        .call-button-container button:hover {
+            background: #f3fbf4 !important;
+        }
+
+        .help-message {
+            font-size: 11px;
+            color: #69717d;
+            margin-top: 9px;
+            line-height: 16px;
+        }
+
+        /* ==================================================
+           FOOTER
+        ================================================== */
+
+        .footer {
+            border-top: 1px solid #edf0f3;
+            margin-top: 26px;
+            padding-top: 21px;
+            display: flex;
+            align-items: center;
+            color: #646c77;
+            font-size: 11px;
+        }
+
+        .footer-links {
+            display: flex;
+            gap: 16px;
+            margin-left: 22px;
+        }
+
+        .footer-separator {
+            color: #c8ccd1;
+        }
+
+        .footer-right {
+            margin-left: auto;
+        }
+
+        /* ==================================================
+           RESPONSIVE
+        ================================================== */
+
+        @media (max-width: 1200px) {
+
+            .brand-area {
+                width: 330px;
+            }
+
+            .brand-tagline {
+                display: none;
+            }
+
+            .search-box {
+                width: 360px;
+            }
+
+            .header-right {
+                gap: 18px;
+            }
+        }
+
+        @media (max-width: 900px) {
+
+            .contact-card-wrapper {
+                min-height: 250px;
+            }
+
+            .header-item span {
+                display: none;
+            }
+
+            .user-area {
+                display: none;
+            }
+
+            .brand-area {
+                width: 250px;
+            }
+
+            .search-box {
+                width: 300px;
+            }
+        }
+
+        </style>
+        """
+    ),
+    unsafe_allow_html=True,
 )
 
 
@@ -675,204 +618,246 @@ div.stButton > button:hover {
 # ============================================================
 
 st.markdown(
-    """
-<div class="top-header">
+    dedent(
+        """
+        <div class="top-header">
 
-    <div class="brand-area">
+            <div class="brand-area">
 
-        <div class="logo-shield">⌂</div>
+                <div class="logo-shield">⌂</div>
 
-        <div class="brand-name">
-            RESILIA
+                <div class="brand-name">
+                    RESILIA
+                </div>
+
+                <div class="brand-tagline">
+                    Building Intelligence<br>
+                    for Safer Communities
+                </div>
+
+            </div>
+
+            <div class="search-box">
+
+                <div class="search-location">⌖</div>
+
+                <div class="search-placeholder">
+                    Search address or building...
+                </div>
+
+                <div class="search-button">
+                    ⌕
+                </div>
+
+            </div>
+
+            <div class="header-right">
+
+                <div class="header-item">
+                    <span style="font-size:19px;">?</span>
+                    <span>Help</span>
+                </div>
+
+                <div class="header-item notification">
+                    <span style="font-size:22px;">♧</span>
+                    <span>Notifications</span>
+                    <div class="notification-badge">3</div>
+                </div>
+
+                <div class="user-area">
+                    <div class="user-name">Admin User</div>
+                    <div class="user-role">Authority</div>
+                </div>
+
+                <div style="font-size:18px;">⌄</div>
+
+            </div>
+
         </div>
-
-        <div class="brand-tagline">
-            Building Intelligence<br>
-            for Safer Communities
-        </div>
-
-    </div>
-
-    <div class="search-box">
-        <div class="search-icon">⌖</div>
-        <div class="search-text">
-            Search address or building...
-        </div>
-        <div class="search-button">
-            ⌕
-        </div>
-    </div>
-
-    <div class="header-right">
-
-        <div class="header-item">
-            <span style="font-size:20px;">?</span>
-            <span>Help</span>
-        </div>
-
-        <div class="header-item notification">
-            <span style="font-size:23px;">♧</span>
-            <span>Notifications</span>
-            <div class="notification-badge">3</div>
-        </div>
-
-        <div class="user-area">
-            <div class="user-name">Admin User</div>
-            <div class="user-role">Authority</div>
-        </div>
-
-        <div style="font-size:18px;">⌄</div>
-
-    </div>
-
-</div>
-""",
-    unsafe_allow_html=True
+        """
+    ),
+    unsafe_allow_html=True,
 )
 
 
 # ============================================================
-# PAGE HEADING + ALERTS
+# TITLE + TOP ALERTS
 # ============================================================
 
-heading_col, emergency_col, assistance_col = st.columns([2.0, 1.15, 1.55], gap="medium")
+title_col, emergency_col, assistance_col = st.columns(
+    [2.0, 1.05, 1.55],
+    gap="medium",
+)
 
-with heading_col:
+with title_col:
     st.markdown(
-        """
-        <div class="page-heading">
-            <div>
-                <div class="page-title">Contacts Directory</div>
-                <div class="page-subtitle">
-                    Connect with the right authority for each building system
+        dedent(
+            """
+            <div class="title-area">
+
+                <div>
+                    <div class="page-title">
+                        Contacts Directory
+                    </div>
+
+                    <div class="page-subtitle">
+                        Connect with the right authority for each building system
+                    </div>
                 </div>
+
             </div>
-        </div>
-        """,
-        unsafe_allow_html=True
+            """
+        ),
+        unsafe_allow_html=True,
     )
+
 
 with emergency_col:
     st.markdown(
-        """
-        <div class="alert-box emergency-box">
-            <div class="alert-icon">☎</div>
-            <div>
-                <div class="alert-title">Emergency Contacts</div>
-                <div class="alert-description">24/7 Support</div>
+        dedent(
+            """
+            <div class="alert-card emergency-alert">
+
+                <div class="alert-icon">☎</div>
+
+                <div>
+                    <div class="alert-title">
+                        Emergency Contacts
+                    </div>
+
+                    <div class="alert-description">
+                        24/7 Support
+                    </div>
+                </div>
+
             </div>
-        </div>
-        """,
-        unsafe_allow_html=True
+            """
+        ),
+        unsafe_allow_html=True,
     )
+
 
 with assistance_col:
     st.markdown(
-        """
-        <div class="alert-box">
-            <div class="alert-icon">ⓘ</div>
-            <div>
-                <div class="alert-title">Need Assistance?</div>
-                <div class="alert-description">
-                    Choose a category to find the right contact person.
+        dedent(
+            """
+            <div class="alert-card">
+
+                <div class="alert-icon">ⓘ</div>
+
+                <div>
+                    <div class="alert-title">
+                        Need Assistance?
+                    </div>
+
+                    <div class="alert-description">
+                        Choose a category to find the right contact person.
+                    </div>
                 </div>
+
             </div>
-        </div>
-        """,
-        unsafe_allow_html=True
+            """
+        ),
+        unsafe_allow_html=True,
     )
 
 
 # ============================================================
-# CONTACT CARDS
+# CONTACT GRID
 # ============================================================
 
 for row_start in range(0, len(contacts), 3):
 
-    cols = st.columns(3, gap="medium")
+    columns = st.columns(3, gap="medium")
 
-    for col_index, contact_index in enumerate(
-        range(row_start, min(row_start + 3, len(contacts)))
-    ):
+    for column_index in range(3):
+
+        contact_index = row_start + column_index
+
+        if contact_index >= len(contacts):
+            continue
 
         contact = contacts[contact_index]
 
-        with cols[col_index]:
+        with columns[column_index]:
 
-            # Card container
+            # ----------------------------------------------
+            # CARD
+            # ----------------------------------------------
+
             st.markdown(
-                f"""
-                <div class="contact-card">
+                dedent(
+                    f"""
+                    <div class="contact-card-wrapper">
 
-                    <div class="card-top">
+                        <div class="card-top">
 
-                        <div class="category-icon icon-{contact['icon_class']}">
-                            {contact['icon']}
-                        </div>
-
-                        <div class="category-content">
-
-                            <div class="category-title">
-                                {contact['category']}
+                            <div class="category-icon icon-{contact['icon_class']}">
+                                {contact['icon']}
                             </div>
 
-                            <div class="authority">
-                                {contact['authority']}<br>
-                                {contact['address']}
+                            <div class="category-content">
+
+                                <div class="category-title">
+                                    {contact['category']}
+                                </div>
+
+                                <div class="authority">
+                                    {contact['authority']}<br>
+                                    {contact['address']}
+                                </div>
+
+                            </div>
+
+                            <div class="dropdown">
+                                ⌄
                             </div>
 
                         </div>
 
-                        <div class="dropdown">
-                            ⌄
+                        <div class="person-row">
+
+                            <div class="person-info">
+
+                                <div class="person-name">
+                                    {contact['name']}
+                                </div>
+
+                                <div class="person-phone">
+                                    {contact['phone']}
+                                </div>
+
+                            </div>
+
                         </div>
 
                     </div>
-
-                    <div class="person-area">
-
-                        <div class="person-details">
-
-                            <div class="person-name">
-                                {contact['name']}
-                            </div>
-
-                            <div class="person-phone">
-                                {contact['phone']}
-                            </div>
-
-                        </div>
-
-                    </div>
-
-                </div>
-                """,
-                unsafe_allow_html=True
+                    """
+                ),
+                unsafe_allow_html=True,
             )
 
-            # ------------------------------------------------
+            # ----------------------------------------------
             # CONTACT BUTTON
-            # ------------------------------------------------
-
-            button_key = f"contact_{contact_index}"
+            # ----------------------------------------------
 
             st.markdown(
-                '<div class="contact-btn">',
-                unsafe_allow_html=True
+                '<div class="contact-button-container">',
+                unsafe_allow_html=True,
             )
 
-            clicked = st.button(
+            contact_clicked = st.button(
                 "Contact",
-                key=button_key,
-                use_container_width=False
+                key=f"contact_{contact_index}",
             )
 
             st.markdown(
-                '</div>',
-                unsafe_allow_html=True
+                "</div>",
+                unsafe_allow_html=True,
             )
 
-            if clicked:
+            if contact_clicked:
+
                 if st.session_state.open_contact == contact_index:
                     st.session_state.open_contact = None
                 else:
@@ -880,51 +865,56 @@ for row_start in range(0, len(contacts), 3):
 
                 st.rerun()
 
-            # ------------------------------------------------
-            # EXPANDED ACTIONS
-            # ------------------------------------------------
+            # ----------------------------------------------
+            # ACTION BUTTONS
+            # ----------------------------------------------
 
             if st.session_state.open_contact == contact_index:
 
-                action_cols = st.columns([2.4, 0.8], gap="small")
+                st.markdown(
+                    '<div class="action-area">',
+                    unsafe_allow_html=True,
+                )
 
-                with action_cols[0]:
+                help_col, call_col = st.columns([2.4, 0.8], gap="small")
+
+                with help_col:
 
                     st.markdown(
-                        '<div class="help-btn">',
-                        unsafe_allow_html=True
+                        '<div class="help-button-container">',
+                        unsafe_allow_html=True,
                     )
 
                     help_clicked = st.button(
                         "◉   More Help",
                         key=f"help_{contact_index}",
-                        use_container_width=True
+                        use_container_width=True,
                     )
 
                     st.markdown(
-                        '</div>',
-                        unsafe_allow_html=True
+                        "</div>",
+                        unsafe_allow_html=True,
                     )
 
                     if help_clicked:
                         st.session_state.help_contact = contact_index
 
-                with action_cols[1]:
+                with call_col:
 
                     st.markdown(
-                        '<div class="call-btn">',
-                        unsafe_allow_html=True
+                        '<div class="call-button-container">',
+                        unsafe_allow_html=True,
                     )
 
                     call_clicked = st.button(
                         "☎",
                         key=f"call_{contact_index}",
-                        use_container_width=True
+                        use_container_width=True,
                     )
 
                     st.markdown(
-                        '</div>',
-                        unsafe_allow_html=True
+                        "</div>",
+                        unsafe_allow_html=True,
                     )
 
                     if call_clicked:
@@ -932,20 +922,31 @@ for row_start in range(0, len(contacts), 3):
                             f"Calling {contact['name']} — {contact['phone']}"
                         )
 
+                st.markdown(
+                    "</div>",
+                    unsafe_allow_html=True,
+                )
+
                 if st.session_state.help_contact == contact_index:
 
                     st.markdown(
-                        f"""
-                        <div class="action-note">
-                            Contact {contact['authority']} for assistance
-                            regarding {contact['category'].lower()}.
-                        </div>
-                        """,
-                        unsafe_allow_html=True
+                        dedent(
+                            f"""
+                            <div class="help-message">
+                                Contact <strong>{contact['authority']}</strong>
+                                for assistance regarding
+                                {contact['category'].lower()}.
+                            </div>
+                            """
+                        ),
+                        unsafe_allow_html=True,
                     )
 
-            # Space between rows
-            st.markdown("<div style='height:18px'></div>", unsafe_allow_html=True)
+            # Space between cards
+            st.markdown(
+                "<div style='height:18px'></div>",
+                unsafe_allow_html=True,
+            )
 
 
 # ============================================================
@@ -953,39 +954,41 @@ for row_start in range(0, len(contacts), 3):
 # ============================================================
 
 st.markdown(
-    """
-<div class="footer">
+    dedent(
+        """
+        <div class="footer">
 
-    <div>
-        © 2026 RESILIA. All rights reserved.
-    </div>
+            <div>
+                © 2026 RESILIA. All rights reserved.
+            </div>
 
-    <div class="footer-links">
+            <div class="footer-links">
 
-        <span>About Us</span>
-        <span class="footer-separator">|</span>
+                <span>About Us</span>
+                <span class="footer-separator">|</span>
 
-        <span>How It Works</span>
-        <span class="footer-separator">|</span>
+                <span>How It Works</span>
+                <span class="footer-separator">|</span>
 
-        <span>Privacy Policy</span>
-        <span class="footer-separator">|</span>
+                <span>Privacy Policy</span>
+                <span class="footer-separator">|</span>
 
-        <span>Terms of Use</span>
-        <span class="footer-separator">|</span>
+                <span>Terms of Use</span>
+                <span class="footer-separator">|</span>
 
-        <span>Data Sources</span>
-        <span class="footer-separator">|</span>
+                <span>Data Sources</span>
+                <span class="footer-separator">|</span>
 
-        <span>Contact Us</span>
+                <span>Contact Us</span>
 
-    </div>
+            </div>
 
-    <div class="footer-right">
-        License & Compliance
-    </div>
+            <div class="footer-right">
+                License & Compliance
+            </div>
 
-</div>
-""",
-    unsafe_allow_html=True
+        </div>
+        """
+    ),
+    unsafe_allow_html=True,
 )
