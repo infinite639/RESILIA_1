@@ -2,7 +2,42 @@ import streamlit as st
 
 st.set_page_config(page_title="RESILIA - Contacts Directory", page_icon="🛡️", layout="wide")
 
-# Custom CSS matching exact visual proportions, colors, fonts, and inline element placements
+# -----------------------------------------------------------------------------
+# 1. POP-UP MODALS (MORE HELP & CALLING)
+# -----------------------------------------------------------------------------
+@st.dialog("Officer Profile & Authority Details")
+def show_more_help_modal(data):
+    st.markdown(f"### {data['icon']} {data['title']}")
+    st.caption(f"Assigned Authority: **{data['dept']}**")
+    st.divider()
+    
+    col1, col2 = st.columns(2)
+    with col1:
+        st.write(f"**Contact Person:**\n{data['person']}")
+        st.write(f"**Direct Extension:**\n{data['phone']}")
+    with col2:
+        st.write(f"**Office Location:**\n{data['loc']}")
+        st.write(f"**Operating Hours:**\n{data['hours']}")
+
+    st.info(f"ℹ️ **Emergency Response Window:** {data['response_time']}\n\nFor official escalations, submit a formal request via the main RESILIA dashboard.")
+    
+    if st.button("Close Directory Card", use_container_width=True):
+        st.rerun()
+
+@st.dialog("Establishing Connection...")
+def show_calling_modal(data):
+    st.markdown(f"<h3 style='text-align: center; color: #16A34A;'>📞 Calling {data['person']}...</h3>", unsafe_allow_html=True)
+    st.markdown(f"<p style='text-align: center; font-size: 1.1rem;'><b>{data['phone']}</b><br><small style='color: #6B7280;'>{data['dept']} — {data['loc']}</small></p>", unsafe_allow_html=True)
+    st.divider()
+    
+    st.warning("⚠️ Call session initialized via Secure VoIP Gateway. Please ensure microphone permissions are granted.")
+    
+    if st.button("End Call", use_container_width=True):
+        st.rerun()
+
+# -----------------------------------------------------------------------------
+# 2. GLOBAL CSS STYLING (FIXED CARD SIZING & ENCLOSED BUTTONS)
+# -----------------------------------------------------------------------------
 st.markdown("""
     <style>
         .stApp {
@@ -13,99 +48,41 @@ st.markdown("""
 
         #MainMenu, footer, header { visibility: hidden; }
 
-        /* Navigation Header */
-        .nav-container {
+        /* Unified Fixed-Size Card Container */
+        .card-container {
+            background-color: #FFFFFF;
+            border: 1px solid #E5E7EB;
+            border-radius: 12px;
+            padding: 20px;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.03);
+            min-height: 290px;
+            max-height: 290px;
             display: flex;
-            align-items: center;
+            flex-direction: column;
             justify-content: space-between;
-            background-color: #FFFFFF;
-            padding: 12px 30px;
-            border-bottom: 1px solid #E5E7EB;
-            margin-bottom: 25px;
+            margin-bottom: 20px;
         }
 
-        .search-box-container {
-            display: flex;
-            align-items: center;
-            background-color: #F9FAFB;
-            border: 1px solid #E5E7EB;
-            border-radius: 8px;
-            width: 480px;
-            overflow: hidden;
-        }
-
-        .search-box-container input {
-            border: none;
-            background: transparent;
-            padding: 10px 14px;
-            width: 100%;
-            font-size: 0.9rem;
-            outline: none;
-        }
-
-        .search-box-btn {
-            background-color: #FDE68A;
-            border: none;
-            padding: 10px 16px;
-            cursor: pointer;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-        }
-
-        /* Page Top Banner Badges */
-        .emergency-banner {
-            background-color: #FEF2F2;
-            border: 1px solid #FEE2E2;
-            border-radius: 12px;
-            padding: 14px 18px;
-            display: flex;
-            align-items: center;
-            gap: 12px;
-        }
-
-        .assistance-banner {
-            background-color: #FFFBEB;
-            border: 1px solid #FEF3C7;
-            border-radius: 12px;
-            padding: 14px 18px;
-            display: flex;
-            align-items: center;
-            gap: 12px;
-        }
-
-        /* Grid Contact Cards */
-        .contact-card {
-            background-color: #FFFFFF;
-            border: 1px solid #E5E7EB;
-            border-radius: 12px;
-            padding: 20px 22px;
-            box-shadow: 0 1px 2px rgba(0, 0, 0, 0.02);
-            height: 100%;
-        }
-
-        .card-top-row {
+        .card-header-flex {
             display: flex;
             align-items: flex-start;
             justify-content: space-between;
-            margin-bottom: 16px;
         }
 
         .card-icon-title {
             display: flex;
             align-items: flex-start;
-            gap: 14px;
+            gap: 12px;
         }
 
         .card-icon-bg {
             width: 44px;
             height: 44px;
             border-radius: 50%;
-            background-color: #EFF6FF;
             display: flex;
             align-items: center;
             justify-content: center;
-            font-size: 1.25rem;
+            font-size: 1.2rem;
             flex-shrink: 0;
         }
 
@@ -120,23 +97,44 @@ st.markdown("""
             font-size: 0.82rem;
             color: #6B7280;
             margin: 0;
-            line-height: 1.35;
+            line-height: 1.3;
         }
 
         .person-name {
             font-size: 0.88rem;
             font-weight: 600;
             color: #374151;
-            margin: 0 0 4px 0;
+            margin: 12px 0 2px 0;
         }
 
         .phone-number {
             font-size: 0.88rem;
             color: #4B5563;
-            margin: 0;
+            margin: 0 0 14px 0;
         }
 
-        /* Streamlit native button overrides for absolute layout matching */
+        /* Top Banner Badges */
+        .emergency-banner {
+            background-color: #FEF2F2;
+            border: 1px solid #FEE2E2;
+            border-radius: 12px;
+            padding: 12px 16px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .assistance-banner {
+            background-color: #FFFBEB;
+            border: 1px solid #FEF3C7;
+            border-radius: 12px;
+            padding: 12px 16px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        /* Button Customizations */
         div.stButton > button[key^="contact_btn_"] {
             background-color: #FDE68A !important;
             color: #111827 !important;
@@ -144,12 +142,11 @@ st.markdown("""
             border-radius: 8px !important;
             font-weight: 600 !important;
             font-size: 0.85rem !important;
-            padding: 6px 16px !important;
             height: 38px !important;
         }
 
         div.stButton > button[key^="help_btn_"] {
-            background-color: #FFFFFF !important;
+            background-color: #F3F4F6 !important; /* Light Grayish Shade */
             color: #374151 !important;
             border: 1px solid #E5E7EB !important;
             border-radius: 8px !important;
@@ -164,48 +161,53 @@ st.markdown("""
             border: 1px solid #DCFCE7 !important;
             border-radius: 8px !important;
             height: 38px !important;
-            display: flex !important;
-            align-items: center !important;
-            justify-content: center !important;
         }
     </style>
 """, unsafe_allow_html=True)
 
 # -----------------------------------------------------------------------------
-# TOP NAVIGATION BAR
+# 3. TOP NAVIGATION BAR (WITH SEARCH SYNC & NOTIFICATIONS PAGE SWITCH)
 # -----------------------------------------------------------------------------
-st.markdown("""
-    <div class="nav-container">
-        <div style="display: flex; align-items: center; gap: 10px;">
-            <span style="font-size: 1.6rem;">🛡️</span>
-            <div>
-                <span style="font-weight: 800; font-size: 1.3rem; letter-spacing: 0.5px;">RESILIA</span>
-                <span style="font-size: 0.75rem; color: #6B7280; display: block; margin-top: -3px;">Building Intelligence for Safer Communities</span>
-            </div>
-        </div>
-        <div class="search-box-container">
-            <input type="text" placeholder="Search address or building..." />
-            <button class="search-box-btn">🔍</button>
-        </div>
-        <div style="display: flex; align-items: center; gap: 24px;">
-            <span style="font-size: 0.9rem; color: #374151; cursor: pointer;">❓ Help</span>
-            <div style="position: relative; cursor: pointer;">
-                <span style="font-size: 1.1rem;">🔔</span>
-                <span style="position: absolute; top: -5px; right: -8px; background-color: #DC2626; color: white; border-radius: 50%; padding: 1px 5px; font-size: 0.65rem; font-weight: 700;">3</span>
-            </div>
-            <div style="display: flex; align-items: center; gap: 8px;">
-                <div style="text-align: right;">
-                    <span style="font-weight: 700; font-size: 0.88rem; display: block; color: #111827;">Admin User</span>
-                    <span style="font-size: 0.75rem; color: #6B7280; display: block;">Authority</span>
-                </div>
-                <span style="font-size: 0.8rem; color: #6B7280;">▼</span>
-            </div>
-        </div>
-    </div>
-""", unsafe_allow_html=True)
+nav_col1, nav_col2, nav_col3 = st.columns([1.5, 3, 1.8])
+
+with nav_col1:
+    if st.button("🛡️ RESILIA", key="nav_home_brand"):
+        try:
+            st.switch_page("pages/maintenance.py")
+        except Exception:
+            st.switch_page("maintenance.py")
+    st.caption("Building Intelligence for Safer Communities")
+
+with nav_col2:
+    search_query = st.text_input(
+        "Search",
+        placeholder="🔍 Search address or building...",
+        label_visibility="collapsed"
+    )
+    if search_query:
+        st.toast(f"Searching building database for: '{search_query}'...")
+
+with nav_col3:
+    c_help, c_notif, c_user = st.columns([1, 1.3, 1.8])
+    with c_help:
+        if st.button("❓ Help", key="nav_help"):
+            st.info("RESILIA Contacts Assistance Center")
+            
+    with c_notif:
+        # Notifications Button redirects to notifications.py page
+        if st.button("🔔 Notifications (3)", key="nav_notif"):
+            try:
+                st.switch_page("pages/notifications.py")
+            except Exception:
+                st.switch_page("notifications.py")
+                
+    with c_user:
+        st.markdown("<div style='text-align: right;'><b>Admin User</b><br><small style='color: #6B7280;'>Authority</small></div>", unsafe_allow_html=True)
+
+st.divider()
 
 # -----------------------------------------------------------------------------
-# PAGE HEADER & ASSISTANCE BADGES
+# 4. PAGE HEADER & ALERT BADGES
 # -----------------------------------------------------------------------------
 h_col1, h_col2, h_col3 = st.columns([2.5, 1.3, 1.8])
 
@@ -238,101 +240,116 @@ with h_col3:
 st.write("")
 
 # -----------------------------------------------------------------------------
-# CONTACTS DATA STRUCTURE (9 CARDS)
+# 5. LOCATION-SPECIFIC CONTACT DATA
 # -----------------------------------------------------------------------------
-contacts = [
+contacts_data = [
     {
         "icon": "💧", "bg": "#EFF6FF", "title": "Water Management",
         "dept": "Dubai Municipality HQ", "loc": "Al Wasl Rd, Dubai, UAE",
-        "person": "Eng. Ahmed Al Mansoori", "phone": "+971 4 123 4567"
+        "person": "Eng. Ahmed Al Mansoori", "phone": "+971 4 123 4567",
+        "hours": "07:30 AM - 03:30 PM", "response_time": "< 30 mins"
     },
     {
         "icon": "⚡", "bg": "#FEF3C7", "title": "Electricity",
         "dept": "DEWA Headquarters", "loc": "Al Ittihad Rd, Dubai, UAE",
-        "person": "Eng. Fatima Al Zaabi", "phone": "+971 4 234 5678"
+        "person": "Eng. Fatima Al Zaabi", "phone": "+971 4 234 5678",
+        "hours": "24/7 Emergency Response", "response_time": "Immediate"
     },
     {
         "icon": "🏠", "bg": "#EFF6FF", "title": "Roof Management",
         "dept": "Dubai Building Dept.", "loc": "Business Bay, Dubai, UAE",
-        "person": "Eng. Omar Hassan", "phone": "+971 4 345 6789"
+        "person": "Eng. Omar Hassan", "phone": "+971 4 345 6789",
+        "hours": "08:00 AM - 04:00 PM", "response_time": "< 2 hours"
     },
     {
         "icon": "🏗️", "bg": "#EFF6FF", "title": "Structural Stability",
         "dept": "Trakhees - Structural Dept.", "loc": "Port Saeed, Dubai, UAE",
-        "person": "Eng. Salma Tariq", "phone": "+971 4 456 7890"
+        "person": "Eng. Salma Tariq", "phone": "+971 4 456 7890",
+        "hours": "07:30 AM - 02:30 PM", "response_time": "< 1 hour"
     },
     {
         "icon": "🌧️", "bg": "#F3F4F6", "title": "Weather Related",
         "dept": "National Center of Meteorology", "loc": "Al Barsha, Dubai, UAE",
-        "person": "Dr. Khalid Al Nuaimi", "phone": "+971 4 567 8901"
+        "person": "Dr. Khalid Al Nuaimi", "phone": "+971 4 567 8901",
+        "hours": "24/7 Weather Monitoring", "response_time": "Real-time"
     },
     {
         "icon": "🧱", "bg": "#FFEDD5", "title": "Exterior Walls",
-        "dept": "Dubai Municipality - Buildings", "loc": "Al Wasl Rd, Dubai, UAE",
-        "person": "Eng. Mariam Farid", "phone": "+971 4 678 9012"
+        "dept": "Dubai Municipality - Buildings", "loc": "Deira, Dubai, UAE",
+        "person": "Eng. Mariam Farid", "phone": "+971 4 678 9012",
+        "hours": "08:00 AM - 03:00 PM", "response_time": "< 4 hours"
     },
     {
         "icon": "🚰", "bg": "#FEE2E2", "title": "Drainage Systems",
         "dept": "Dubai Municipality - Sewage Dept.", "loc": "Umm Ramool, Dubai, UAE",
-        "person": "Eng. Yousuf Ibrahim", "phone": "+971 4 789 0123"
+        "person": "Eng. Yousuf Ibrahim", "phone": "+971 4 789 0123",
+        "hours": "24/7 Rapid Response", "response_time": "< 20 mins"
     },
     {
         "icon": "🚪", "bg": "#DCFCE7", "title": "Interior",
-        "dept": "Dubai Municipality - Interior Dept.", "loc": "Al Barsha, Dubai, UAE",
-        "person": "Eng. Noor Al Hammadi", "phone": "+971 4 890 1234"
+        "dept": "Dubai Municipality - Interior Dept.", "loc": "Al Jaddaf, Dubai, UAE",
+        "person": "Eng. Noor Al Hammadi", "phone": "+971 4 890 1234",
+        "hours": "08:00 AM - 04:00 PM", "response_time": "< 3 hours"
     },
     {
         "icon": "🛡️", "bg": "#F3F4F6", "title": "Security",
         "dept": "Dubai Police - Community Safety", "loc": "Al Kifaf, Dubai, UAE",
-        "person": "Lt. Ahmed Bin Rashid", "phone": "+971 4 901 2345"
+        "person": "Lt. Ahmed Bin Rashid", "phone": "+971 4 901 2345",
+        "hours": "24/7 Control Room", "response_time": "Immediate"
     }
 ]
 
-# Function to render each card cleanly with dual-layer layout (HTML for Info, Streamlit Widgets for Actions)
-def render_card(c, index):
-    st.markdown(f"""
-        <div class="contact-card">
-            <div class="card-top-row">
-                <div class="card-icon-title">
-                    <div class="card-icon-bg" style="background-color: {c['bg']};">{c['icon']}</div>
-                    <div>
-                        <h4 class="card-title-text">{c['title']}</h4>
-                        <p class="card-subtitle-text">{c['dept']}<br>{c['loc']}</p>
-                    </div>
-                </div>
-                <span style="color: #9CA3AF; font-size: 0.8rem; cursor: pointer;">⌵</span>
-            </div>
-            <p class="person-name">{c['person']}</p>
-            <p class="phone-number">{c['phone']}</p>
-        </div>
-    """, unsafe_allow_html=True)
-    
-    # Action buttons positioned underneath card details to match layout structure
-    btn_col1, btn_col2, btn_col3 = st.columns([2, 2.5, 1.2])
-    with btn_col1:
-        st.button("Contact", key=f"contact_btn_{index}")
-    with btn_col2:
-        st.button("👁️ More Help", key=f"help_btn_{index}", use_container_width=True)
-    with btn_col3:
-        st.button("📞", key=f"call_btn_{index}", use_container_width=True)
-
 # -----------------------------------------------------------------------------
-# 3x3 GRID DISPLAY
+# 6. RENDER CARDS GRID (3 COLUMNS X 3 ROWS)
 # -----------------------------------------------------------------------------
 for row in range(0, 9, 3):
-    col1, col2, col3 = st.columns(3)
-    
-    with col1:
-        render_card(contacts[row], row)
-    with col2:
-        render_card(contacts[row + 1], row + 1)
-    with col3:
-        render_card(contacts[row + 2], row + 2)
+    cols = st.columns(3)
+    for col_idx in range(3):
+        data_idx = row + col_idx
+        item = contacts_data[data_idx]
         
+        with cols[col_idx]:
+            # Outer Card Container (Fixed size wrapping text AND buttons inside)
+            with st.container():
+                st.markdown(f"""
+                    <div class="card-container">
+                        <div>
+                            <div class="card-header-flex">
+                                <div class="card-icon-title">
+                                    <div class="card-icon-bg" style="background-color: {item['bg']};">{item['icon']}</div>
+                                    <div>
+                                        <h4 class="card-title-text">{item['title']}</h4>
+                                        <p class="card-subtitle-text">{item['dept']}<br>{item['loc']}</p>
+                                    </div>
+                                </div>
+                                <span style="color: #9CA3AF; font-size: 0.85rem;">⌵</span>
+                            </div>
+                            <p class="person-name">{item['person']}</p>
+                            <p class="phone-number">{item['phone']}</p>
+                        </div>
+                    </div>
+                """, unsafe_allow_html=True)
+                
+                # Enclosed Action Buttons aligned cleanly inside the lower box area
+                b_col1, b_col2, b_col3 = st.columns([1.8, 2.2, 1.2])
+                with b_col1:
+                    if st.button("Contact", key=f"contact_btn_{data_idx}", use_container_width=True):
+                        st.toast(f"Contact request initiated for {item['person']}.")
+                with b_col2:
+                    # Light grayish shade button triggering More Help Pop-up Modal
+                    if st.button("👁️ More Help", key=f"help_btn_{data_idx}", use_container_width=True):
+                        show_more_help_modal(item)
+                with b_col3:
+                    # Dial button triggering Calling Pop-up Modal
+                    if st.button("📞", key=f"call_btn_{data_idx}", use_container_width=True):
+                        show_calling_modal(item)
+                        
     st.write("")
 
-# Footer
-st.markdown("<hr style='margin-top: 40px; border-color: #E5E7EB;'>", unsafe_allow_html=True)
+# -----------------------------------------------------------------------------
+# 7. FOOTER
+# -----------------------------------------------------------------------------
+st.markdown("<hr style='margin-top: 30px; border-color: #E5E7EB;'>", unsafe_allow_html=True)
 ft_col1, ft_col2 = st.columns([4, 1])
 with ft_col1:
     st.caption("© 2026 RESILIA. All rights reserved.  |  About Us  |  How It Works  |  Privacy Policy  |  Terms of Use  |  Data Sources  |  Contact Us")
