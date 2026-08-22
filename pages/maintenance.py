@@ -2,23 +2,15 @@ import streamlit as st
 
 st.set_page_config(page_title="RESILIA - Maintenance Dashboard", page_icon="🛡️", layout="wide")
 
-# -----------------------------------------------------------------------------
-# AI MODAL POP-UP (Triggered when clicking any category in the sidebar)
-# -----------------------------------------------------------------------------
 @st.dialog("Category Details & Diagnostics")
 def show_aspect_modal(category_name, status_color):
     st.markdown(f"### {category_name}")
     st.caption(f"Status Indicator: **{status_color}**")
     st.divider()
-    
     st.info("🤖 **Backend AI Model Integration Space**\n\nDiagnostic telemetry, model outputs, and detailed sensory metrics for this aspect will be rendered here.")
-    
     if st.button("Close Modal"):
         st.rerun()
 
-# -----------------------------------------------------------------------------
-# CUSTOM CSS FOR DASHBOARD UI
-# -----------------------------------------------------------------------------
 st.markdown("""
     <style>
         .stApp {
@@ -78,7 +70,23 @@ st.markdown("""
             font-weight: 600;
         }
 
-        /* ANNOTATION 1: CUSTOM STYLING FOR REPORT AN ISSUE BUTTON */
+        /* ANNOTATION 1: SCROLL CONTAINER CSS RULE */
+        .feedback-scroll-box {
+            max-height: 260px;
+            overflow-y: auto;
+            padding-right: 6px;
+            margin-bottom: 10px;
+        }
+
+        .feedback-scroll-box::-webkit-scrollbar {
+            width: 6px;
+        }
+        .feedback-scroll-box::-webkit-scrollbar-thumb {
+            background-color: #CBD5E1;
+            border-radius: 4px;
+        }
+
+        /* ANNOTATION 2: YELLOW REPORT BUTTON STYLING */
         div.stButton > button[key="btn_report_an_issue"] {
             background-color: #D97706 !important;
             color: #FFFFFF !important;
@@ -96,46 +104,29 @@ st.markdown("""
     </style>
 """, unsafe_allow_html=True)
 
-# -----------------------------------------------------------------------------
-# 1. TOP NAVIGATION HEADER
-# -----------------------------------------------------------------------------
+# Navigation Bar
 nav_col1, nav_col2, nav_col3 = st.columns([1.5, 3, 1.8])
-
 with nav_col1:
     st.markdown("### 🛡️ **RESILIA**")
     st.caption("Building Intelligence for Safer Communities")
-
 with nav_col2:
-    search_input = st.text_input(
-        "Search",
-        placeholder="🔍 Search address or building...",
-        label_visibility="collapsed"
-    )
-
+    search_input = st.text_input("Search", placeholder="🔍 Search address or building...", label_visibility="collapsed")
 with nav_col3:
     c_help, c_notif, c_user = st.columns([1, 1.2, 1.8])
     with c_help:
-        if st.button("❓ Help"):
-            st.info("Help & Support documentation module.")
-            
+        if st.button("❓ Help"): st.info("Help & Support documentation module.")
     with c_notif:
         if st.button("🔔 Notifications (3)"):
-            try:
-                st.switch_page("pages/notifications.py")
-            except Exception:
-                st.switch_page("notifications.py")
-                
+            try: st.switch_page("pages/notifications.py")
+            except Exception: st.switch_page("notifications.py")
     with c_user:
         st.markdown("<div style='text-align: right;'><b>Admin User</b><br><small style='color: #6B7280;'>Authority</small></div>", unsafe_allow_html=True)
 
 st.divider()
 
-# -----------------------------------------------------------------------------
-# 2. MAIN DASHBOARD GRID
-# -----------------------------------------------------------------------------
+# Main Grid Layout
 left_col, center_col, right_col = st.columns([1.2, 3, 1.4])
 
-# --- LEFT SIDEBAR: CATEGORIES & OVERVIEW ---
 with left_col:
     st.markdown("""
         <div class="card-box" style="background-color: #FFFBEB; border-color: #FCD34D;">
@@ -145,23 +136,16 @@ with left_col:
     """, unsafe_allow_html=True)
     
     categories = [
-        ("💧 Water Management", "Green"),
-        ("⚡ Electricity", "Yellow"),
-        ("🏠 Roof Management", "Red"),
-        ("🏗️ Structural Stability", "Green"),
-        ("🌧️ Weather Related", "Yellow"),
-        ("🧱 Exterior Walls", "Yellow"),
-        ("🚰 Drainage Systems", "Red"),
-        ("🚪 Interior", "Green"),
-        ("🔒 Security", "Green")
+        ("💧 Water Management", "Green"), ("⚡ Electricity", "Yellow"),
+        ("🏠 Roof Management", "Red"), ("🏗️ Structural Stability", "Green"),
+        ("🌧️ Weather Related", "Yellow"), ("🧱 Exterior Walls", "Yellow"),
+        ("🚰 Drainage Systems", "Red"), ("🚪 Interior", "Green"), ("🔒 Security", "Green")
     ]
-    
     for cat_name, status in categories:
         dot = "🟢" if status == "Green" else "🟡" if status == "Yellow" else "🔴"
         if st.button(f"{cat_name} {dot}", key=f"cat_{cat_name}", use_container_width=True):
             show_aspect_modal(cat_name, status)
 
-# --- CENTER CANVAS: BUILDING DETAILS & MAP PLACEHOLDER ---
 with center_col:
     st.markdown("""
         <div class="card-box">
@@ -183,43 +167,25 @@ with center_col:
     with v2: st.button("Map View", use_container_width=True)
     with v3: st.button("Street View", use_container_width=True)
 
-    st.markdown("""
-        <div class="map-placeholder">
-            [ Map View Area Placeholder — Ready for GPS Map Integration ]
-        </div>
-    """, unsafe_allow_html=True)
+    st.markdown('<div class="map-placeholder">[ Map View Area Placeholder — Ready for GPS Map Integration ]</div>', unsafe_allow_html=True)
 
     st.subheader("AI Insights")
     i1, i2, i3, i4 = st.columns(4)
-    
     with i1:
         st.error("**Roof Management**\n\nHigh risk of deterioration detected.")
-        if st.button("View Details →", key="vi_1"):
-            show_aspect_modal("Roof Management", "Red")
-            
+        if st.button("View Details →", key="vi_1"): show_aspect_modal("Roof Management", "Red")
     with i2:
         st.warning("**Drainage Systems**\n\nStanding water detected in 2 locations.")
-        if st.button("View Details →", key="vi_2"):
-            show_aspect_modal("Drainage Systems", "Red")
-            
+        if st.button("View Details →", key="vi_2"): show_aspect_modal("Drainage Systems", "Red")
     with i3:
         st.warning("**Electricity**\n\n3 recent complaints reported.")
-        if st.button("View Details →", key="vi_3"):
-            show_aspect_modal("Electricity", "Yellow")
-            
+        if st.button("View Details →", key="vi_3"): show_aspect_modal("Electricity", "Yellow")
     with i4:
         st.warning("**Exterior Walls**\n\nSigns of surface wear detected.")
-        if st.button("View Details →", key="vi_4"):
-            show_aspect_modal("Exterior Walls", "Yellow")
+        if st.button("View Details →", key="vi_4"): show_aspect_modal("Exterior Walls", "Yellow")
 
-# --- RIGHT SIDEBAR: FLAGS, AI SUMMARY, SCROLLABLE FEEDBACK & REPORT ---
 with right_col:
-    st.markdown("""
-        <div class="flag-box">
-            <h4 style="margin: 0;">🚨 3 Issues Flagged</h4>
-            <small>Requires immediate attention</small>
-        </div>
-    """, unsafe_allow_html=True)
+    st.markdown('<div class="flag-box"><h4 style="margin: 0;">🚨 3 Issues Flagged</h4><small>Requires immediate attention</small></div>', unsafe_allow_html=True)
 
     st.markdown("""
         <div class="card-box">
@@ -230,54 +196,40 @@ with right_col:
             </div>
         </div>
     """, unsafe_allow_html=True)
-    if st.button("View Full Analysis >", use_container_width=True):
-        st.info("Full AI analysis view placeholder.")
+    if st.button("View Full Analysis >", use_container_width=True): st.info("Full AI analysis view placeholder.")
 
     # -------------------------------------------------------------------------
-    # ANNOTATION 2: NATIVE STREAMLIT SCROLL CONTAINER FOR FEEDBACK
-    # Creates an internal scroll area limited to 270px height.
+    # ANNOTATION 3: SINGLE STRING HTML SCROLL CONTAINER
+    # Compiles entire cards string first so Streamlit renders a single clean div.
     # -------------------------------------------------------------------------
     st.subheader("Recent Feedback")
     
     if "feedback_list" not in st.session_state:
         st.session_state.feedback_list = [
-            {
-                "user": "Resident",
-                "date": "May 18, 2026",
-                "text": "Water leaking from ceiling during heavy rain.",
-                "priority": "High Priority"
-            },
-            {
-                "user": "Anonymous",
-                "date": "May 16, 2026",
-                "text": "Water accumulation near basement entrance.",
-                "priority": "Medium Priority"
-            },
-            {
-                "user": "Faculty Member",
-                "date": "May 14, 2026",
-                "text": "Flickering lights in the 2nd floor hall.",
-                "priority": "Medium Priority"
-            }
+            {"user": "Resident", "date": "May 18, 2026", "text": "Water leaking from ceiling during heavy rain.", "priority": "High Priority"},
+            {"user": "Anonymous", "date": "May 16, 2026", "text": "Water accumulation near basement entrance.", "priority": "Medium Priority"},
+            {"user": "Faculty Member", "date": "May 14, 2026", "text": "Flickering lights in the 2nd floor hall.", "priority": "Medium Priority"}
         ]
 
-    with st.container(height=270):
-        for fb in st.session_state.feedback_list:
-            badge_class = "badge-high" if "High" in fb["priority"] else "badge-medium"
-            st.markdown(f"""
-                <div class="card-box">
-                    <div style="display: flex; justify-content: space-between;">
-                        <b>{fb['user']}</b>
-                        <small style="color: #9CA3AF;">{fb['date']}</small>
-                    </div>
-                    <p style="font-size: 0.85rem; margin: 8px 0; color: #374151;">{fb['text']}</p>
-                    <span class="{badge_class}">{fb['priority']}</span>
+    compiled_feedback_html = '<div class="feedback-scroll-box">'
+    for fb in st.session_state.feedback_list:
+        badge_class = "badge-high" if "High" in fb["priority"] else "badge-medium"
+        compiled_feedback_html += f"""
+            <div class="card-box">
+                <div style="display: flex; justify-content: space-between;">
+                    <b>{fb['user']}</b>
+                    <small style="color: #9CA3AF;">{fb['date']}</small>
                 </div>
-            """, unsafe_allow_html=True)
+                <p style="font-size: 0.85rem; margin: 8px 0; color: #374151;">{fb['text']}</p>
+                <span class="{badge_class}">{fb['priority']}</span>
+            </div>
+        """
+    compiled_feedback_html += '</div>'
+
+    st.markdown(compiled_feedback_html, unsafe_allow_html=True)
 
     # -------------------------------------------------------------------------
-    # ANNOTATION 3: YELLOW BOX CONTAINING "REPORT THE ISSUE" BUTTON
-    # Direct routing button targeting pages/feedback.py.
+    # ANNOTATION 4: YELLOW ACCENT BOX WITH "REPORT THE ISSUE" ACTION BUTTON
     # -------------------------------------------------------------------------
     st.markdown("""
         <div style="background-color: #FEF3C7; border: 1.5px solid #FCD34D; border-radius: 10px; padding: 14px; text-align: center; margin-top: 15px;">
@@ -292,36 +244,27 @@ with right_col:
         except Exception:
             st.switch_page("feedback.py")
 
-# -----------------------------------------------------------------------------
-# 3. BOTTOM CONTACTS BAR
-# -----------------------------------------------------------------------------
+# Bottom Contacts Bar
 st.divider()
 st.subheader("Contact the Right Authority")
-
 cnt1, cnt2, cnt3, cnt4, cnt5 = st.columns(5)
 
 def nav_to_contacts():
-    try:
-        st.switch_page("pages/contacts.py")
-    except Exception:
-        st.switch_page("contacts.py")
+    try: st.switch_page("pages/contacts.py")
+    except Exception: st.switch_page("contacts.py")
 
 with cnt1:
     st.markdown("<b>Property Management</b><br><small>+971 4 123 4567</small>", unsafe_allow_html=True)
     if st.button("Contact", key="cnt_btn_1"): nav_to_contacts()
-
 with cnt2:
     st.markdown("<b>Water / Drainage</b><br><small>Dubai Municipality — 800 900</small>", unsafe_allow_html=True)
     if st.button("Contact", key="cnt_btn_2"): nav_to_contacts()
-
 with cnt3:
     st.markdown("<b>Electricity</b><br><small>DEWA — 991</small>", unsafe_allow_html=True)
     if st.button("Contact", key="cnt_btn_3"): nav_to_contacts()
-
 with cnt4:
     st.markdown("<b>Structural / Safety</b><br><small>Dubai Civil Defense — 997</small>", unsafe_allow_html=True)
     if st.button("Contact", key="cnt_btn_4"): nav_to_contacts()
-
 with cnt5:
     st.markdown("<b>Emergency</b><br><small>Emergency Services — 999</small>", unsafe_allow_html=True)
     if st.button("Call Now", key="cnt_btn_5"): nav_to_contacts()
