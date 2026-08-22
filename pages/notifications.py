@@ -97,7 +97,6 @@ if "notifications" not in st.session_state:
 if "active_filter" not in st.session_state:
     st.session_state.active_filter = "All"
 
-# List of available category options
 ALL_CATEGORIES = [
     "Water Management", "Electricity", "Roof", "Structural Stability",
     "Weather", "Exterior Walls", "Drainage", "Interior", "Security"
@@ -129,30 +128,18 @@ def show_notification_dialog(notification):
             st.rerun()
 
 # -----------------------------------------------------------------------------
-# 3. GLOBAL CSS STYLING
+# 3. GLOBAL CSS STYLING & MUTED COLOR SCHEME FOR BOTTOM CONTACTS
 # -----------------------------------------------------------------------------
 st.markdown("""
     <style>
         .stApp {
-            background-color: #FAFAFA;
+            background-color: #FAF6F0;
             color: #1E293B;
             font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
         }
 
         #MainMenu, footer, header { visibility: hidden; }
 
-        /* Top Nav Header */
-        .nav-container {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            background-color: #FFFFFF;
-            padding: 12px 32px;
-            border-bottom: 1px solid #E2E8F0;
-            margin-bottom: 24px;
-        }
-
-        /* Card Container Styling */
         .notif-card {
             background-color: #FFFFFF;
             border: 1px solid #E2E8F0;
@@ -166,7 +153,6 @@ st.markdown("""
             box-shadow: 0 4px 12px rgba(0,0,0,0.03);
         }
 
-        /* Type Badges */
         .badge-alert {
             background-color: #FEE2E2;
             color: #DC2626;
@@ -200,7 +186,6 @@ st.markdown("""
             display: inline-block;
         }
 
-        /* Custom Sidebar Widget Cards */
         .sidebar-card {
             background-color: #FFFFFF;
             border: 1px solid #E2E8F0;
@@ -209,7 +194,80 @@ st.markdown("""
             margin-bottom: 16px;
         }
 
-        /* Streamlit Button Tweaks */
+        /* -------------------------------------------------------------------------
+           ANNOTATION: MUTED COLOR PALETTE FOR BOTTOM CONTACT CARDS & BUTTONS
+           Matches warm dashboard background (#FAF6F0) using low-saturation tones.
+           ------------------------------------------------------------------------- */
+        
+        .contact-box-muted {
+            background-color: #FFFFFF;
+            border: 1px solid #E2E8F0;
+            border-radius: 10px;
+            padding: 14px;
+            margin-bottom: 8px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.02);
+        }
+
+        /* Muted Warm Yellow/Amber Button Style */
+        .btn-muted-yellow {
+            display: block;
+            width: 100%;
+            text-align: center;
+            background-color: #D97706 !important;
+            color: #FFFFFF !important;
+            border: none !important;
+            border-radius: 6px !important;
+            padding: 8px 0 !important;
+            font-size: 0.85rem !important;
+            font-weight: 600 !important;
+            text-decoration: none !important;
+            transition: background-color 0.2s ease;
+        }
+        .btn-muted-yellow:hover {
+            background-color: #B45309 !important;
+            color: #FFFFFF !important;
+        }
+
+        /* Muted Earth Green Button Style */
+        .btn-muted-green {
+            display: block;
+            width: 100%;
+            text-align: center;
+            background-color: #059669 !important;
+            color: #FFFFFF !important;
+            border: none !important;
+            border-radius: 6px !important;
+            padding: 8px 0 !important;
+            font-size: 0.85rem !important;
+            font-weight: 600 !important;
+            text-decoration: none !important;
+            transition: background-color 0.2s ease;
+        }
+        .btn-muted-green:hover {
+            background-color: #047857 !important;
+            color: #FFFFFF !important;
+        }
+
+        /* Muted Soft Maroon/Burgundy Emergency Button Style */
+        .btn-muted-maroon {
+            display: block;
+            width: 100%;
+            text-align: center;
+            background-color: #991B1B !important;
+            color: #FFFFFF !important;
+            border: none !important;
+            border-radius: 6px !important;
+            padding: 8px 0 !important;
+            font-size: 0.85rem !important;
+            font-weight: 600 !important;
+            text-decoration: none !important;
+            transition: background-color 0.2s ease;
+        }
+        .btn-muted-maroon:hover {
+            background-color: #7F1D1D !important;
+            color: #FFFFFF !important;
+        }
+
         div.stButton > button {
             border-radius: 6px !important;
         }
@@ -239,7 +297,6 @@ with header_cols[2]:
             st.switch_page("feedback.py")
 
 with header_cols[3]:
-    # Active navigation highlight
     st.markdown("<div style='border-bottom: 3px solid #DC2626; text-align: center; padding-bottom: 4px;'><b>🔔 Notifications</b></div>", unsafe_allow_html=True)
 
 with header_cols[4]:
@@ -291,7 +348,6 @@ st.markdown("<br>", unsafe_allow_html=True)
 main_col, side_col = st.columns([2.8, 1.2])
 
 with main_col:
-    # --- SUB-CATEGORY TABS ---
     t_all, t_unread, t_alerts, t_updates, t_system = st.columns(5)
     
     with t_all:
@@ -318,10 +374,8 @@ with main_col:
     st.markdown(f"<small style='color: #64748B;'>Active Filter: <b>{st.session_state.active_filter}</b></small>", unsafe_allow_html=True)
     st.divider()
 
-    # --- FILTER NOTIFICATIONS LIST ---
     filtered_list = []
     for n in st.session_state.notifications:
-        # Tab Filter logic
         if st.session_state.active_filter == "Unread" and n["is_read"]:
             continue
         elif st.session_state.active_filter == "Alerts" and n["type"] != "ALERT":
@@ -331,11 +385,9 @@ with main_col:
         elif st.session_state.active_filter == "System" and n["type"] != "SYSTEM":
             continue
         
-        # Category Filter logic
         if n["category"] in st.session_state.selected_categories or n["type"] == "SYSTEM" or n["category"] == "Assessment":
             filtered_list.append(n)
 
-    # --- RENDER NOTIFICATIONS GROUPED BY DAY ---
     days = ["Today", "Yesterday"]
     
     for day in days:
@@ -381,10 +433,9 @@ with main_col:
         st.toast("All notifications loaded.", icon="ℹ️")
 
 # -----------------------------------------------------------------------------
-# 8. RIGHT SIDEBAR (SUMMARY, FILTERS & TEST GENERATOR)
+# 8. RIGHT SIDEBAR (SUMMARY & FILTERS)
 # -----------------------------------------------------------------------------
 with side_col:
-    # SUMMARY WIDGET
     st.markdown("""
         <div class="sidebar-card">
             <h4 style="margin-top:0;">Notification Summary</h4>
@@ -409,7 +460,6 @@ with side_col:
         </div>
     """.format(unread_cnt=unread_cnt, alerts_cnt=alerts_cnt, updates_cnt=updates_cnt, system_cnt=system_cnt), unsafe_allow_html=True)
 
-    # FILTER BY NOTIFICATION TYPE
     st.markdown("#### **Filter Notifications**")
     if st.button(f"🔔 All Notifications ({total_cnt})", use_container_width=True):
         st.session_state.active_filter = "All"
@@ -426,9 +476,7 @@ with side_col:
 
     st.divider()
 
-    # FILTER BY CATEGORY (CHECKBOXES)
     st.markdown("#### **Filter by Category**")
-    
     selected_cats = []
     for cat in ALL_CATEGORIES:
         is_checked = cat in st.session_state.selected_categories
@@ -439,37 +487,69 @@ with side_col:
         st.session_state.selected_categories = selected_cats
         st.rerun()
 
-    st.divider()
-
-    # DYNAMIC NOTIFICATION GENERATOR (TESTING TOOL)
-    with st.expander("➕ Test Notification Pop-Up Generator"):
-        st.caption("Generate a new notification dynamically to test real-time pop-up behavior.")
-        gen_title = st.text_input("Title", value="Sensor Disconnection Alert")
-        gen_type = st.selectbox("Type", ["ALERT", "UPDATE", "SYSTEM"])
-        gen_cat = st.selectbox("Category", ALL_CATEGORIES)
-        gen_msg = st.text_area("Message", value="Telemetry node #82 dropped offline on Building B.")
-        
-        if st.button("Create & Trigger Notification", use_container_width=True):
-            new_item = {
-                "id": len(st.session_state.notifications) + 1,
-                "title": gen_title,
-                "type": gen_type,
-                "message": gen_msg,
-                "building": "Building B-101",
-                "category": gen_cat,
-                "time": datetime.now().strftime("%I:%M %p"),
-                "day": "Today",
-                "is_read": False,
-                "icon": "⚠️" if gen_type == "ALERT" else "✅" if gen_type == "UPDATE" else "⚙️",
-                "bg_color": "#FEE2E2" if gen_type == "ALERT" else "#DCFCE7",
-                "details": f"Generated via live engine. Real-time telemetry event recorded at {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}."
-            }
-            st.session_state.notifications.insert(0, new_item)
-            st.toast(f"New Notification Created: {gen_title}", icon="🔔")
-            show_notification_dialog(new_item)
-
 # -----------------------------------------------------------------------------
-# 9. FOOTER
+# 9. BOTTOM CONTACTS BAR WITH ANNOTATED MUTED COLOR PALETTE
 # -----------------------------------------------------------------------------
 st.divider()
-st.caption("© 2026 RESILIA. All rights reserved.")
+st.subheader("Contact the Right Authority")
+
+cnt1, cnt2, cnt3, cnt4, cnt5 = st.columns(5)
+
+def nav_to_contacts():
+    try:
+        st.switch_page("pages/contacts.py")
+    except Exception:
+        st.switch_page("contacts.py")
+
+with cnt1:
+    st.markdown("""
+        <div class="contact-box-muted">
+            <b style="color: #1E293B;">Property Management</b><br>
+            <small style="color: #64748B;">+971 4 123 4567</small>
+            <br><br>
+            <a href="javascript:void(0)" class="btn-muted-green">Contact</a>
+        </div>
+    """, unsafe_allow_html=True)
+
+with cnt2:
+    st.markdown("""
+        <div class="contact-box-muted">
+            <b style="color: #1E293B;">Water / Drainage</b><br>
+            <small style="color: #64748B;">Dubai Municipality — 800 900</small>
+            <br><br>
+            <a href="javascript:void(0)" class="btn-muted-yellow">Contact</a>
+        </div>
+    """, unsafe_allow_html=True)
+
+with cnt3:
+    st.markdown("""
+        <div class="contact-box-muted">
+            <b style="color: #1E293B;">Electricity</b><br>
+            <small style="color: #64748B;">DEWA — 991</small>
+            <br><br>
+            <a href="javascript:void(0)" class="btn-muted-yellow">Contact</a>
+        </div>
+    """, unsafe_allow_html=True)
+
+with cnt4:
+    st.markdown("""
+        <div class="contact-box-muted">
+            <b style="color: #1E293B;">Structural / Safety</b><br>
+            <small style="color: #64748B;">Dubai Civil Defense — 997</small>
+            <br><br>
+            <a href="javascript:void(0)" class="btn-muted-green">Contact</a>
+        </div>
+    """, unsafe_allow_html=True)
+
+with cnt5:
+    st.markdown("""
+        <div class="contact-box-muted">
+            <b style="color: #1E293B;">Emergency</b><br>
+            <small style="color: #64748B;">Emergency Services — 999</small>
+            <br><br>
+            <a href="javascript:void(0)" class="btn-muted-maroon">Call Now</a>
+        </div>
+    """, unsafe_allow_html=True)
+
+st.divider()
+st.caption("© 2026 RESILIA. All rights reserved. | About Us | How It Works | Privacy Policy | Terms of Use | Data Sources | Contact Us")
