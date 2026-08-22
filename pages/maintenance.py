@@ -84,6 +84,44 @@ st.markdown("""
             font-size: 0.75rem;
             font-weight: 600;
         }
+
+        /* -------------------------------------------------------------------------
+           ANNOTATION 1: SCROLLABLE CONTAINER FOR RIGHT-PANEL FEEDBACK STREAM
+           Prevents page overflow by keeping all feedback cards inside a scroll box.
+           ------------------------------------------------------------------------- */
+        .feedback-scroll-container {
+            max-height: 260px;
+            overflow-y: scroll;
+            padding-right: 6px;
+            margin-bottom: 15px;
+        }
+
+        .feedback-scroll-container::-webkit-scrollbar {
+            width: 6px;
+        }
+
+        .feedback-scroll-container::-webkit-scrollbar-thumb {
+            background-color: #CBD5E1;
+            border-radius: 4px;
+        }
+
+        /* -------------------------------------------------------------------------
+           ANNOTATION 2: CUSTOM STYLING FOR YELLOW "REPORT AN ISSUE" BUTTON
+           ------------------------------------------------------------------------- */
+        div.stButton > button[key="btn_report_an_issue"] {
+            background-color: #D97706 !important;
+            color: #FFFFFF !important;
+            border: none !important;
+            border-radius: 6px !important;
+            font-weight: 700 !important;
+            font-size: 0.9rem !important;
+            height: 42px !important;
+        }
+
+        div.stButton > button[key="btn_report_an_issue"]:hover {
+            background-color: #B45309 !important;
+            box-shadow: 0 4px 8px rgba(180, 83, 9, 0.25) !important;
+        }
     </style>
 """, unsafe_allow_html=True)
 
@@ -230,7 +268,10 @@ with right_col:
     if st.button("View Full Analysis >", use_container_width=True):
         st.info("Full AI analysis view placeholder.")
 
-    # Recent Feedback Panel (Includes submitted feedback sync)
+    # -------------------------------------------------------------------------
+    # ANNOTATION 3: SCROLLABLE RECENT FEEDBACK STREAM
+    # Renders all entries from st.session_state inside a fixed-height scroll container.
+    # -------------------------------------------------------------------------
     st.subheader("Recent Feedback")
     
     # Initialize default feedback examples in session state if not present
@@ -247,12 +288,20 @@ with right_col:
                 "date": "May 16, 2026",
                 "text": "Water accumulation near basement entrance.",
                 "priority": "Medium Priority"
+            },
+            {
+                "user": "Faculty Member",
+                "date": "May 14, 2026",
+                "text": "Flickering lights in the 2nd floor hall.",
+                "priority": "Medium Priority"
             }
         ]
 
+    # Single string builder to prevent Streamlit from closing open HTML tags
+    feedback_cards_html = '<div class="feedback-scroll-container">'
     for fb in st.session_state.feedback_list:
         badge_class = "badge-high" if "High" in fb["priority"] else "badge-medium"
-        st.markdown(f"""
+        feedback_cards_html += f"""
             <div class="card-box">
                 <div style="display: flex; justify-content: space-between;">
                     <b>{fb['user']}</b>
@@ -261,15 +310,27 @@ with right_col:
                 <p style="font-size: 0.85rem; margin: 8px 0; color: #374151;">{fb['text']}</p>
                 <span class="{badge_class}">{fb['priority']}</span>
             </div>
-        """, unsafe_allow_html=True)
+        """
+    feedback_cards_html += '</div>'
+    
+    st.markdown(feedback_cards_html, unsafe_allow_html=True)
 
-    # Report An Issue Action Card
+    # -------------------------------------------------------------------------
+    # ANNOTATION 4: YELLOW BOX CONTAINING "REPORT THE ISSUE" BUTTON
+    # Navigates directly to pages/feedback.py when clicked.
+    # -------------------------------------------------------------------------
     st.markdown("""
-        <div class="card-box" style="background-color: #FEF3C7; text-align: center;">
-            <b>📝 REPORT AN ISSUE</b><br>
-            <small style="color: #78350F;">Report this issue to the relevant authority</small>
+        <div style="background-color: #FEF3C7; border: 1.5px solid #FCD34D; border-radius: 10px; padding: 14px; text-align: center; margin-top: 10px;">
+            <b style="color: #92400E; font-size: 0.95rem;">📝 REPORT AN ISSUE</b><br>
+            <small style="color: #78350F; display: block; margin-bottom: 10px;">Log maintenance hazards directly to dispatch</small>
         </div>
     """, unsafe_allow_html=True)
+    
+    if st.button("📢 Report the Issue", key="btn_report_an_issue", use_container_width=True):
+        try:
+            st.switch_page("pages/feedback.py")
+        except Exception:
+            st.switch_page("feedback.py")
 
 # -----------------------------------------------------------------------------
 # 3. BOTTOM CONTACTS BAR
