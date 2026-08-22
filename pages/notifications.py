@@ -128,7 +128,7 @@ def show_notification_dialog(notification):
             st.rerun()
 
 # -----------------------------------------------------------------------------
-# 3. GLOBAL CSS STYLING & MUTED COLOR SCHEME FOR BOTTOM CONTACTS
+# 3. GLOBAL CSS STYLING & UNIFIED COLOR SCHEMES
 # -----------------------------------------------------------------------------
 st.markdown("""
     <style>
@@ -153,31 +153,6 @@ st.markdown("""
             box-shadow: 0 4px 12px rgba(0,0,0,0.03);
         }
 
-        .badge-alert {
-            background-color: #FEE2E2;
-            color: #DC2626;
-            padding: 2px 8px;
-            border-radius: 4px;
-            font-size: 0.70rem;
-            font-weight: 700;
-        }
-        .badge-update {
-            background-color: #DCFCE7;
-            color: #16A34A;
-            padding: 2px 8px;
-            border-radius: 4px;
-            font-size: 0.70rem;
-            font-weight: 700;
-        }
-        .badge-system {
-            background-color: #F1F5F9;
-            color: #475569;
-            padding: 2px 8px;
-            border-radius: 4px;
-            font-size: 0.70rem;
-            font-weight: 700;
-        }
-
         .unread-dot {
             height: 8px;
             width: 8px;
@@ -195,21 +170,48 @@ st.markdown("""
         }
 
         /* -------------------------------------------------------------------------
-           ANNOTATION: MUTED COLOR PALETTE FOR BOTTOM CONTACT CARDS & BUTTONS
-           Matches warm dashboard background (#FAF6F0) using low-saturation tones.
+           1. UNIFORM COLOR FOR SUB-CATEGORIES (TABS & SIDEBAR SUBCATEGORY BUTTONS)
+           All filters (All, Unread, Alerts, Updates, System) use a matching slate tone.
            ------------------------------------------------------------------------- */
-        
-        .contact-box-muted {
+        div.stButton > button {
+            border-radius: 6px !important;
+            background-color: #F1F5F9 !important;
+            color: #334155 !important;
+            border: 1px solid #CBD5E1 !important;
+            font-weight: 600 !important;
+            transition: all 0.2s ease;
+        }
+        div.stButton > button:hover {
+            background-color: #E2E8F0 !important;
+            color: #0F172A !important;
+            border-color: #94A3B8 !important;
+        }
+
+        /* -------------------------------------------------------------------------
+           2. UNIFORM COLOR FOR CATEGORY CHECKBOXES
+           Applies a consistent dark slate theme to all multi-select categories.
+           ------------------------------------------------------------------------- */
+        div[data-testid="stCheckbox"] label {
+            color: #334155 !important;
+            font-weight: 500 !important;
+            font-size: 0.9rem !important;
+        }
+
+        /* -------------------------------------------------------------------------
+           3. UNIFORM COLOR FOR ALL BOTTOM CONTACT AUTHORITY CARDS & BUTTONS
+           Every contact action button is styled uniformly in a soft amber accent.
+           ------------------------------------------------------------------------- */
+        .contact-box-unified {
             background-color: #FFFFFF;
             border: 1px solid #E2E8F0;
             border-radius: 10px;
             padding: 14px;
             margin-bottom: 8px;
             box-shadow: 0 1px 3px rgba(0,0,0,0.02);
+            text-align: center;
         }
 
-        /* Muted Warm Yellow/Amber Button Style */
-        .btn-muted-yellow {
+        .btn-unified-contact {
             display: block;
             width: 100%;
             text-align: center;
@@ -219,57 +221,14 @@ st.markdown("""
             border-radius: 6px !important;
             padding: 8px 0 !important;
             font-size: 0.85rem !important;
-            font-weight: 600 !important;
+            font-weight: 700 !important;
             text-decoration: none !important;
-            transition: background-color 0.2s ease;
+            transition: background-color 0.2s ease, box-shadow 0.2s ease;
         }
-        .btn-muted-yellow:hover {
+        .btn-unified-contact:hover {
             background-color: #B45309 !important;
             color: #FFFFFF !important;
-        }
-
-        /* Muted Earth Green Button Style */
-        .btn-muted-green {
-            display: block;
-            width: 100%;
-            text-align: center;
-            background-color: #059669 !important;
-            color: #FFFFFF !important;
-            border: none !important;
-            border-radius: 6px !important;
-            padding: 8px 0 !important;
-            font-size: 0.85rem !important;
-            font-weight: 600 !important;
-            text-decoration: none !important;
-            transition: background-color 0.2s ease;
-        }
-        .btn-muted-green:hover {
-            background-color: #047857 !important;
-            color: #FFFFFF !important;
-        }
-
-        /* Muted Soft Maroon/Burgundy Emergency Button Style */
-        .btn-muted-maroon {
-            display: block;
-            width: 100%;
-            text-align: center;
-            background-color: #991B1B !important;
-            color: #FFFFFF !important;
-            border: none !important;
-            border-radius: 6px !important;
-            padding: 8px 0 !important;
-            font-size: 0.85rem !important;
-            font-weight: 600 !important;
-            text-decoration: none !important;
-            transition: background-color 0.2s ease;
-        }
-        .btn-muted-maroon:hover {
-            background-color: #7F1D1D !important;
-            color: #FFFFFF !important;
-        }
-
-        div.stButton > button {
-            border-radius: 6px !important;
+            box-shadow: 0 4px 10px rgba(180, 83, 9, 0.25);
         }
     </style>
 """, unsafe_allow_html=True)
@@ -348,6 +307,7 @@ st.markdown("<br>", unsafe_allow_html=True)
 main_col, side_col = st.columns([2.8, 1.2])
 
 with main_col:
+    # UNIFORM SUB-CATEGORY FILTER TABS
     t_all, t_unread, t_alerts, t_updates, t_system = st.columns(5)
     
     with t_all:
@@ -395,7 +355,6 @@ with main_col:
         if day_items:
             st.markdown(f"#### **{day}**")
             for item in day_items:
-                badge_class = "badge-alert" if item["type"] == "ALERT" else "badge-update" if item["type"] == "UPDATE" else "badge-system"
                 unread_indicator = '<span class="unread-dot"></span>' if not item["is_read"] else ''
                 
                 card_col1, card_col2 = st.columns([4.5, 0.5])
@@ -409,7 +368,7 @@ with main_col:
                                         {item['icon']}
                                     </div>
                                     <div>
-                                        <b>{item['title']}</b> <span class="{badge_class}">{item['type']}</span>
+                                        <b>{item['title']}</b>
                                         <p style="margin: 4px 0; font-size: 0.88rem; color: #475569;">{item['message']}</p>
                                         <small style="color: #94A3B8;">🏢 {item['building']} &nbsp;•&nbsp; Tag: {item['category']}</small>
                                     </div>
@@ -433,33 +392,34 @@ with main_col:
         st.toast("All notifications loaded.", icon="ℹ️")
 
 # -----------------------------------------------------------------------------
-# 8. RIGHT SIDEBAR (SUMMARY & FILTERS)
+# 8. RIGHT SIDEBAR (SUMMARY & UNIFORM FILTERS)
 # -----------------------------------------------------------------------------
 with side_col:
     st.markdown("""
         <div class="sidebar-card">
             <h4 style="margin-top:0;">Notification Summary</h4>
             <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
-                <div style="background-color: #FEF2F2; padding: 12px; border-radius: 8px; text-align: center;">
-                    <span style="font-size: 1.2rem; color: #DC2626;">🔔</span> <b>{unread_cnt}</b><br>
-                    <small style="color: #991B1B;">Unread</small>
+                <div style="background-color: #F8FAFC; border: 1px solid #E2E8F0; padding: 12px; border-radius: 8px; text-align: center;">
+                    <span style="font-size: 1.2rem;">🔔</span> <b>{unread_cnt}</b><br>
+                    <small style="color: #64748B;">Unread</small>
                 </div>
-                <div style="background-color: #FFF7ED; padding: 12px; border-radius: 8px; text-align: center;">
-                    <span style="font-size: 1.2rem; color: #EA580C;">⚠️</span> <b>{alerts_cnt}</b><br>
-                    <small style="color: #9A3412;">Alerts</small>
+                <div style="background-color: #F8FAFC; border: 1px solid #E2E8F0; padding: 12px; border-radius: 8px; text-align: center;">
+                    <span style="font-size: 1.2rem;">⚠️</span> <b>{alerts_cnt}</b><br>
+                    <small style="color: #64748B;">Alerts</small>
                 </div>
-                <div style="background-color: #F0FDF4; padding: 12px; border-radius: 8px; text-align: center;">
-                    <span style="font-size: 1.2rem; color: #16A34A;">🔄</span> <b>{updates_cnt}</b><br>
-                    <small style="color: #166534;">Updates</small>
+                <div style="background-color: #F8FAFC; border: 1px solid #E2E8F0; padding: 12px; border-radius: 8px; text-align: center;">
+                    <span style="font-size: 1.2rem;">🔄</span> <b>{updates_cnt}</b><br>
+                    <small style="color: #64748B;">Updates</small>
                 </div>
-                <div style="background-color: #F8FAFC; padding: 12px; border-radius: 8px; text-align: center;">
-                    <span style="font-size: 1.2rem; color: #475569;">⚙️</span> <b>{system_cnt}</b><br>
-                    <small style="color: #334155;">System</small>
+                <div style="background-color: #F8FAFC; border: 1px solid #E2E8F0; padding: 12px; border-radius: 8px; text-align: center;">
+                    <span style="font-size: 1.2rem;">⚙️</span> <b>{system_cnt}</b><br>
+                    <small style="color: #64748B;">System</small>
                 </div>
             </div>
         </div>
     """.format(unread_cnt=unread_cnt, alerts_cnt=alerts_cnt, updates_cnt=updates_cnt, system_cnt=system_cnt), unsafe_allow_html=True)
 
+    # UNIFORM SUB-CATEGORY SIDEBAR BUTTONS
     st.markdown("#### **Filter Notifications**")
     if st.button(f"🔔 All Notifications ({total_cnt})", use_container_width=True):
         st.session_state.active_filter = "All"
@@ -476,6 +436,7 @@ with side_col:
 
     st.divider()
 
+    # UNIFORM CATEGORY CHECKBOXES
     st.markdown("#### **Filter by Category**")
     selected_cats = []
     for cat in ALL_CATEGORIES:
@@ -488,7 +449,7 @@ with side_col:
         st.rerun()
 
 # -----------------------------------------------------------------------------
-# 9. BOTTOM CONTACTS BAR WITH ANNOTATED MUTED COLOR PALETTE
+# 9. BOTTOM CONTACTS BAR (UNIFORM COLOR PALETTE)
 # -----------------------------------------------------------------------------
 st.divider()
 st.subheader("Contact the Right Authority")
@@ -503,51 +464,51 @@ def nav_to_contacts():
 
 with cnt1:
     st.markdown("""
-        <div class="contact-box-muted">
+        <div class="contact-box-unified">
             <b style="color: #1E293B;">Property Management</b><br>
             <small style="color: #64748B;">+971 4 123 4567</small>
             <br><br>
-            <a href="javascript:void(0)" class="btn-muted-green">Contact</a>
+            <a href="javascript:void(0)" class="btn-unified-contact">Contact</a>
         </div>
     """, unsafe_allow_html=True)
 
 with cnt2:
     st.markdown("""
-        <div class="contact-box-muted">
+        <div class="contact-box-unified">
             <b style="color: #1E293B;">Water / Drainage</b><br>
             <small style="color: #64748B;">Dubai Municipality — 800 900</small>
             <br><br>
-            <a href="javascript:void(0)" class="btn-muted-yellow">Contact</a>
+            <a href="javascript:void(0)" class="btn-unified-contact">Contact</a>
         </div>
     """, unsafe_allow_html=True)
 
 with cnt3:
     st.markdown("""
-        <div class="contact-box-muted">
+        <div class="contact-box-unified">
             <b style="color: #1E293B;">Electricity</b><br>
             <small style="color: #64748B;">DEWA — 991</small>
             <br><br>
-            <a href="javascript:void(0)" class="btn-muted-yellow">Contact</a>
+            <a href="javascript:void(0)" class="btn-unified-contact">Contact</a>
         </div>
     """, unsafe_allow_html=True)
 
 with cnt4:
     st.markdown("""
-        <div class="contact-box-muted">
+        <div class="contact-box-unified">
             <b style="color: #1E293B;">Structural / Safety</b><br>
             <small style="color: #64748B;">Dubai Civil Defense — 997</small>
             <br><br>
-            <a href="javascript:void(0)" class="btn-muted-green">Contact</a>
+            <a href="javascript:void(0)" class="btn-unified-contact">Contact</a>
         </div>
     """, unsafe_allow_html=True)
 
 with cnt5:
     st.markdown("""
-        <div class="contact-box-muted">
+        <div class="contact-box-unified">
             <b style="color: #1E293B;">Emergency</b><br>
             <small style="color: #64748B;">Emergency Services — 999</small>
             <br><br>
-            <a href="javascript:void(0)" class="btn-muted-maroon">Call Now</a>
+            <a href="javascript:void(0)" class="btn-unified-contact">Call Now</a>
         </div>
     """, unsafe_allow_html=True)
 
