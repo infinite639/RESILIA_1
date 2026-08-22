@@ -1,7 +1,7 @@
 import streamlit as st
 from datetime import datetime
 
-# Configure the global browser tab title, icon, and wide page layout
+# Configure global browser tab title, icon, and wide page layout
 st.set_page_config(
     page_title="RESILIA - Give Feedback", 
     page_icon="🛡️", 
@@ -11,10 +11,9 @@ st.set_page_config(
 # -----------------------------------------------------------------------------
 # 1. SUCCESS POP-UP MODAL (@st.dialog)
 # -----------------------------------------------------------------------------
-# Define a modal popup that renders when a user submits their feedback
 @st.dialog("Feedback Submitted Successfully")
 def show_success_modal(summary_data):
-    # Render modal header icon, title, and description using custom HTML
+    # Modal header icon, title, and description
     st.markdown("""
         <div style="text-align: center; padding: 10px 0;">
             <div style="font-size: 3.5rem; color: #16A34A; margin-bottom: 10px;">✅</div>
@@ -27,7 +26,7 @@ def show_success_modal(summary_data):
     
     st.divider()
     
-    # Display an itemized summary of the user's submitted feedback
+    # Summary list of submitted data
     st.markdown(f"""
         **Submission Summary:**
         * **Building Address:** {summary_data['building']}
@@ -37,10 +36,9 @@ def show_success_modal(summary_data):
         * **Timestamp:** {summary_data['date']}
     """)
     
-    # Informational notice regarding AI system downstream processing
     st.info("🤖 **Next Action:** RESILIA's AI model will evaluate this incident and route notice to local municipal authorities.")
     
-    # Navigation button to route user back to the main homepage/dashboard
+    # Return button to navigate back to dashboard
     if st.button("Return to Maintenance Dashboard", use_container_width=True):
         try:
             st.switch_page("pages/homepage.py")
@@ -50,31 +48,19 @@ def show_success_modal(summary_data):
 # -----------------------------------------------------------------------------
 # 2. UI STYLING & CUSTOM CSS
 # -----------------------------------------------------------------------------
-# Inject global CSS overrides for background colors, headers, form cards, and custom buttons
 st.markdown("""
     <style>
-        /* Base page background color, primary text color, and typography */
+        /* Base page background color and font family */
         .stApp {
             background-color: #FAF8F5;
             color: #111827;
             font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
         }
 
-        /* Hide standard Streamlit header, footer, and main menu elements */
+        /* Hide Streamlit default UI components */
         #MainMenu, footer, header { visibility: hidden; }
 
-        /* Navigation Bar Container Styling */
-        .nav-container {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            background-color: #FFFFFF;
-            padding: 12px 40px;
-            border-bottom: 1px solid #E5E7EB;
-            margin-bottom: 30px;
-        }
-
-        /* Main Form Card Container Styling */
+        /* Card Container Styling */
         .form-card {
             background-color: #FFFFFF;
             border: 1px solid #E5E7EB;
@@ -84,7 +70,7 @@ st.markdown("""
             margin-bottom: 25px;
         }
 
-        /* Circular Step Badge Indicator (e.g. 1, 2, 3) */
+        /* Circular Step Badge Indicator */
         .step-badge {
             background-color: #CE3834;
             color: #FFFFFF;
@@ -99,7 +85,7 @@ st.markdown("""
             margin-right: 10px;
         }
 
-        /* Section Header Container in Form */
+        /* Section Header Container */
         .step-header {
             display: flex;
             align-items: center;
@@ -110,7 +96,7 @@ st.markdown("""
             margin-top: 10px;
         }
 
-        /* Information & Guidance Cards for the Right Sidebar */
+        /* Right Sidebar Component Cards */
         .sidebar-card {
             background-color: #FFFFFF;
             border: 1px solid #E5E7EB;
@@ -120,7 +106,7 @@ st.markdown("""
             box-shadow: 0 1px 2px rgba(0,0,0,0.02);
         }
 
-        /* Red-highlighted Emergency Contact Banner */
+        /* Red Emergency Banner Card */
         .emergency-help-card {
             background-color: #FEF2F2;
             border: 1px solid #FEE2E2;
@@ -129,7 +115,7 @@ st.markdown("""
             color: #991B1B;
         }
 
-        /* Primary Action Submit Button Override */
+        /* Form Buttons Styling */
         div.stButton > button[key="btn_submit_feedback"] {
             background-color: #CE3834 !important;
             color: #FFFFFF !important;
@@ -140,7 +126,6 @@ st.markdown("""
             height: 46px !important;
         }
 
-        /* Secondary Action Reset Button Override */
         div.stButton > button[key="btn_reset_form"] {
             background-color: #FFFFFF !important;
             color: #CE3834 !important;
@@ -154,67 +139,76 @@ st.markdown("""
 """, unsafe_allow_html=True)
 
 # -----------------------------------------------------------------------------
-# 3. TOP NAVIGATION BAR
+# 3. TOP NAVIGATION BAR (EXPANDED BUTTONS & NOTIFICATIONS ROUTE)
 # -----------------------------------------------------------------------------
-# Set up a 3-column top navbar layout (Brand Logo / Center Spacer / Navigation Menu)
-nav1, nav2, nav3 = st.columns([2, 3, 2])
+# Grid columns layout for expanded horizontal button widths
+nav_cols = st.columns([1.5, 1.2, 1.2, 1.4, 1.2, 0.5])
 
-# Left side: Brand/Logo home redirect button
-with nav1:
-    if st.button("🛡️ RESILIA", key="nav_brand_home"):
+# Brand button
+with nav_cols[0]:
+    if st.button("🛡️ RESILIA", key="nav_brand_home", use_container_width=True):
         try:
             st.switch_page("pages/homepage.py")
         except Exception:
             st.switch_page("homepage.py")
 
-# Middle column used as empty layout spacing
-with nav2:
-    st.write("")
+# Maintenance link
+with nav_cols[1]:
+    if st.button("📑 Maintenance", key="nav_maint", use_container_width=True):
+        try:
+            st.switch_page("pages/homepage.py")
+        except Exception:
+            st.switch_page("homepage.py")
 
-# Right side: Page navigation links and active indicator
-with nav3:
-    n_maint, n_feed, n_about = st.columns(3)
-    
-    # Nav link to Maintenance Dashboard
-    with n_maint:
-        if st.button("📑 Maintenance", key="nav_maint"):
-            try:
-                st.switch_page("pages/homepage.py")
-            except Exception:
-                st.switch_page("homepage.py")
-                
-    # Active tab visual marker for current Feedback page
-    with n_feed:
-        st.markdown("<b style='color: #CE3834; border-bottom: 2px solid #CE3834; padding-bottom: 4px;'>💬 Feedback</b>", unsafe_allow_html=True)
-        
-    # Modal trigger info box for AI model version details
-    with n_about:
-        if st.button("ℹ️ About Model", key="nav_about"):
-            st.info("RESILIA AI Risk Assessment Model v2.4")
+# Active page display for Feedback
+with nav_cols[2]:
+    st.markdown(
+        "<div style='border-bottom: 3px solid #CE3834; text-align: center; padding-bottom: 6px; font-weight: 700; color: #CE3834; font-size: 0.95rem; margin-top: 4px;'>"
+        "💬 Feedback"
+        "</div>", 
+        unsafe_allow_html=True
+    )
+
+# Notifications link routing to pages/notifications.py
+with nav_cols[3]:
+    if st.button("🔔 Notifications", key="nav_notif", use_container_width=True):
+        try:
+            st.switch_page("pages/notifications.py")
+        except Exception:
+            st.switch_page("notifications.py")
+
+# About Model button
+with nav_cols[4]:
+    if st.button("ℹ️ About Model", key="nav_about", use_container_width=True):
+        st.info("RESILIA AI Risk Assessment Model v2.4")
+
+# User profile icon container
+with nav_cols[5]:
+    st.markdown("<div style='text-align: center; font-size: 1.2rem; padding-top: 4px;'>👤</div>", unsafe_allow_html=True)
 
 st.divider()
 
 # -----------------------------------------------------------------------------
-# 4. MAIN PAGE HEADER & HERO GRAPHIC AREA
+# 4. MAIN PAGE HEADER (SINGLE-LINE TITLE & HERO AREA)
 # -----------------------------------------------------------------------------
-# Create hero section layout with header text on left and graphic on right
-hdr_col, img_col = st.columns([3.2, 1.8])
+# Ratio configured to keep single-line text formatting without wrapping
+hdr_col, img_col = st.columns([4.2, 0.8])
 
-# Title and descriptive subhead
 with hdr_col:
-    st.markdown("<h1 style='font-size: 2.3rem; font-weight: 800; margin: 0;'>Give <span style='color: #CE3834;'>Feedback</span></h1>", unsafe_allow_html=True)
+    # Single-line title setting whitespace to nowrap
+    st.markdown("<h1 style='font-size: 2.3rem; font-weight: 800; margin: 0; white-space: nowrap;'>Give <span style='color: #CE3834;'>Feedback</span></h1>", unsafe_allow_html=True)
     st.markdown("""
-        <p style='color: #4B5563; font-size: 1.05rem; line-height: 1.6; margin-top: 12px; max-width: 580px;'>
+        <p style='color: #4B5563; font-size: 1.05rem; line-height: 1.6; margin-top: 12px;'>
             Help us improve building maintenance and resilience by sharing the issues you are experiencing. 
             Your feedback enables RESILIA to take the right action, faster.
         </p>
     """, unsafe_allow_html=True)
 
-# Radial gradient header illustration placeholder
 with img_col:
+    # Graphic header icon align
     st.markdown("""
-        <div style="text-align: center; background: radial-gradient(circle, #FEE2E2 0%, rgba(255,255,255,0) 70%); padding: 10px;">
-            <span style="font-size: 5rem;">🏢💬🏙️</span>
+        <div style="text-align: right; padding-top: 10px;">
+            <span style="font-size: 3.5rem;">🏢💬</span>
         </div>
     """, unsafe_allow_html=True)
 
@@ -223,25 +217,21 @@ st.write("")
 # -----------------------------------------------------------------------------
 # 5. FORM AND SIDEBAR LAYOUT
 # -----------------------------------------------------------------------------
-# Split main body into form container (left) and guidance sidebar (right)
 left_form_col, right_info_col = st.columns([3.2, 1.8])
 
 with left_form_col:
     with st.container():
-        # Open wrapper div with class for custom CSS styling
         st.markdown('<div class="form-card">', unsafe_allow_html=True)
         
         # --- SECTION 1: BUILDING INFORMATION ---
         st.markdown('<div class="step-header"><span class="step-badge">1</span> Building Information</div>', unsafe_allow_html=True)
         
-        # Text input for building location
         building_address = st.text_input(
             "Building Address*",
             placeholder="🔍 Search or enter building address (e.g., Building A17, DIAC, Dubai)",
             key="fb_address"
         )
         
-        # Two-column layout for metadata select dropdowns
         b_col1, b_col2 = st.columns(2)
         with b_col1:
             property_type = st.selectbox(
@@ -262,7 +252,6 @@ with left_form_col:
         st.markdown('<div class="step-header"><span class="step-badge">2</span> Issue Details</div>', unsafe_allow_html=True)
         st.caption("Type of Issue*")
         
-        # List of predefined category options mapping (Display Label, Value)
         issue_categories = [
             ("💧 Water Management", "Water Management"),
             ("⚡ Electricity", "Electricity"),
@@ -275,7 +264,6 @@ with left_form_col:
             ("🔒 Security", "Security")
         ]
         
-        # Radio button grid for category selection
         selected_issue = st.radio(
             "Select Issue Category",
             options=[cat[1] for cat in issue_categories],
@@ -284,7 +272,6 @@ with left_form_col:
             key="fb_issue_cat"
         )
         
-        # Multiline text field for detailed description
         issue_description = st.text_area(
             "Describe the Issue*",
             placeholder="Please describe the issue in detail...",
@@ -292,7 +279,6 @@ with left_form_col:
             key="fb_desc"
         )
         
-        # Date input and occurrence frequency selector
         d_col1, d_col2 = st.columns(2)
         with d_col1:
             first_noticed = st.date_input("When did you first notice this issue?*", key="fb_date")
@@ -303,7 +289,6 @@ with left_form_col:
                 key="fb_freq"
             )
 
-        # Horizontal radio selectors for urgency priority
         st.caption("Impact / Severity*")
         severity_level = st.radio(
             "Severity Level",
@@ -314,7 +299,6 @@ with left_form_col:
             key="fb_severity"
         )
 
-        # File uploader input for images/videos
         st.caption("Add Photos or Videos (Optional)")
         uploaded_files = st.file_uploader(
             "Drag and drop files here or click to upload",
@@ -328,36 +312,30 @@ with left_form_col:
         # --- SECTION 3: YOUR CONTACT INFORMATION ---
         st.markdown('<div class="step-header"><span class="step-badge">3</span> Your Contact Information</div>', unsafe_allow_html=True)
         
-        # Contact detail inputs
         c_col1, c_col2 = st.columns(2)
         with c_col1:
             user_name = st.text_input("Your Name*", placeholder="Enter your name", key="fb_name")
         with c_col2:
             user_contact = st.text_input("Contact Number / Email*", placeholder="Enter phone number or email", key="fb_contact")
 
-        # Opt-in checkbox for notification updates
         receive_updates = st.checkbox("I would like to receive updates about this issue via email / SMS.", value=True, key="fb_updates")
 
         st.write("")
 
-        # --- FORM SUBMIT BUTTONS & STATE HANDLING ---
+        # --- FORM SUBMIT BUTTONS ---
         btn_col1, btn_col2 = st.columns([2, 1.5])
         with btn_col1:
             submit_clicked = st.button("🚀 Submit Feedback", key="btn_submit_feedback", use_container_width=True)
         with btn_col2:
             reset_clicked = st.button("🔄 Reset Form", key="btn_reset_form", use_container_width=True)
 
-        # Form submission logic and validation checks
         if submit_clicked:
-            # Validate required fields
             if not building_address or not issue_description or not user_name:
                 st.error("⚠️ Please fill in all required fields marked with an asterisk (*).")
             else:
-                # Initialize state array if it does not exist yet
                 if "feedback_list" not in st.session_state:
                     st.session_state.feedback_list = []
 
-                # Build feedback record payload
                 new_feedback_entry = {
                     "user": user_name if user_name else "Anonymous Resident",
                     "date": datetime.now().strftime("%b %d, %Y"),
@@ -368,10 +346,7 @@ with left_form_col:
                     "contact": user_contact
                 }
 
-                # Prepend output to list to preserve reverse chronological order
                 st.session_state.feedback_list.insert(0, new_feedback_entry)
-
-                # Trigger confirmation dialog modal
                 show_success_modal(new_feedback_entry)
 
         st.markdown('</div>', unsafe_allow_html=True)
@@ -380,7 +355,6 @@ with left_form_col:
 # 6. RIGHT SIDEBAR GUIDANCE CARDS
 # -----------------------------------------------------------------------------
 with right_info_col:
-    # Sidebar Card 1: Value proposition list
     st.markdown("""
         <div class="sidebar-card">
             <h4 style="margin: 0 0 10px 0; font-weight: 700;">👥 Why Your Feedback Matters</h4>
@@ -396,7 +370,6 @@ with right_info_col:
         </div>
     """, unsafe_allow_html=True)
 
-    # Sidebar Card 2: Form submission guidance tips
     st.markdown("""
         <div class="sidebar-card">
             <h4 style="margin: 0 0 10px 0; font-weight: 700;">💡 Tips for Helpful Feedback</h4>
@@ -409,7 +382,6 @@ with right_info_col:
         </div>
     """, unsafe_allow_html=True)
 
-    # Sidebar Card 3: Emergency assistance escalation banner
     st.markdown("""
         <div class="emergency-help-card">
             <h4 style="margin: 0 0 8px 0; font-weight: 700; color: #DC2626;">📞 Need Immediate Assistance?</h4>
@@ -419,15 +391,12 @@ with right_info_col:
         </div>
     """, unsafe_allow_html=True)
 
-    # Navigation trigger to directory contacts page
     if st.button("📞 Open Contacts Directory", key="btn_to_contacts", use_container_width=True):
         try:
             st.switch_page("pages/contacts.py")
         except Exception:
             st.switch_page("contacts.py")
 
-# -----------------------------------------------------------------------------
-# 7. PAGE FOOTER
-# -----------------------------------------------------------------------------
+# Footer
 st.divider()
 st.caption("🛡️ RESILIA — © 2026 RESILIA. All rights reserved.")
