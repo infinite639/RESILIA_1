@@ -227,7 +227,7 @@ with header_cols[0]:
 with header_cols[1]:
     if st.button("🛠️ Maintenance", use_container_width=True):
         try:
-            st.switch_page("app.py")
+            st.switch_page("pages/maintenance.py")
         except Exception:
             st.switch_page("maintenance.py")
 
