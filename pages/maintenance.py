@@ -2,6 +2,14 @@ import streamlit as st
 
 st.set_page_config(page_title="RESILIA - Maintenance Dashboard", page_icon="🛡️", layout="wide")
 
+# Query parameter handling for the Report Issue button click
+if st.query_params.get("navigate") == "feedback":
+    st.query_params.clear()
+    try:
+        st.switch_page("pages/feedback.py")
+    except Exception:
+        st.switch_page("feedback.py")
+
 # -----------------------------------------------------------------------------
 # AI MODAL POP-UP
 # -----------------------------------------------------------------------------
@@ -17,7 +25,7 @@ def show_aspect_modal(category_name, status_color):
         st.rerun()
 
 # -----------------------------------------------------------------------------
-# CUSTOM CSS FOR DASHBOARD UI & CONTAINERS
+# CUSTOM CSS FOR DASHBOARD UI
 # -----------------------------------------------------------------------------
 st.markdown("""
     <style>
@@ -79,8 +87,8 @@ st.markdown("""
         }
 
         /* -------------------------------------------------------------------------
-           ANNOTATION 1: REMOVE OUTLINE / BORDER FROM FEEDBACK SCROLL CONTAINER
-           Hides Streamlit's default container border while matching page background.
+           ANNOTATION 1: BORDERLESS FEEDBACK CONTAINER
+           Hides Streamlit's default container outline while matching background color.
            ------------------------------------------------------------------------- */
         div[data-testid="stVerticalBlockBorderWrapper"] {
             border: none !important;
@@ -89,44 +97,65 @@ st.markdown("""
         }
 
         /* -------------------------------------------------------------------------
-           ANNOTATION 2: YELLOW ISSUE CARD CONTAINMENT & STYLING
-           Creates a soft yellow wrapper with subtle borders for seamless button nesting.
+           ANNOTATION 2: FULLY EXPANDED YELLOW CARD WRAPPER
+           Extends heightwise to completely enclose title, subtext, and action button.
            ------------------------------------------------------------------------- */
-        .yellow-issue-box {
+        .yellow-card-container {
             background-color: #FEF3C7;
             border: 1px solid #FDE68A;
             border-radius: 10px;
-            padding: 16px;
+            padding: 18px 16px;
             text-align: center;
             margin-top: 15px;
+            width: 100%;
+            box-sizing: border-box;
+        }
+
+        .yellow-card-title {
+            color: #92400E;
+            font-size: 0.95rem;
+            font-weight: 700;
+            display: block;
+            margin-bottom: 4px;
+        }
+
+        .yellow-card-subtitle {
+            color: #78350F;
+            font-size: 0.82rem;
+            display: block;
+            margin-bottom: 14px;
         }
 
         /* -------------------------------------------------------------------------
-           ANNOTATION 3: REMOVE DARK BORDER & FORMAT BUTTON INSIDE YELLOW CONTAINER
-           Eliminates dark gray/black borders, focus rings, and sets vibrant contrast.
+           ANNOTATION 3: CLEAN EMBEDDED ACTION BUTTON (NO DARK BORDERS)
+           Strips out gray/black borders, focus rings, and outlines entirely.
            ------------------------------------------------------------------------- */
-        div.yellow-issue-box div.stButton > button {
-            background-color: #D97706 !important;
+        .yellow-card-button {
+            display: block;
+            width: 100%;
+            background-color: #D97706;
             color: #FFFFFF !important;
+            text-decoration: none !important;
+            font-weight: 700;
+            font-size: 0.88rem;
+            padding: 10px 0;
+            border-radius: 6px;
             border: none !important;
             outline: none !important;
             box-shadow: none !important;
-            border-radius: 6px !important;
-            font-weight: 700 !important;
-            font-size: 0.88rem !important;
-            height: 40px !important;
-            margin-top: 8px !important;
+            transition: background-color 0.2s ease, box-shadow 0.2s ease;
+            box-sizing: border-box;
         }
 
-        div.yellow-issue-box div.stButton > button:hover {
-            background-color: #B45309 !important;
+        .yellow-card-button:hover {
+            background-color: #B45309;
             color: #FFFFFF !important;
-            border: none !important;
-            box-shadow: 0 4px 10px rgba(180, 83, 9, 0.2) !important;
+            box-shadow: 0 4px 10px rgba(180, 83, 9, 0.25);
+            text-decoration: none !important;
         }
 
-        div.yellow-issue-box div.stButton > button:focus, 
-        div.yellow-issue-box div.stButton > button:active {
+        .yellow-card-button:focus,
+        .yellow-card-button:active {
             border: none !important;
             outline: none !important;
             box-shadow: none !important;
@@ -159,9 +188,9 @@ with nav_col3:
     with c_notif:
         if st.button("🔔 Notifications (3)"):
             try:
-                st.switch_page("pages/notifications.py")
+                st.switch_page("pages/feedback.py")
             except Exception:
-                st.switch_page("notifications.py")
+                st.switch_page("feedback.py")
                 
     with c_user:
         st.markdown("<div style='text-align: right;'><b>Admin User</b><br><small style='color: #6B7280;'>Authority</small></div>", unsafe_allow_html=True)
@@ -250,7 +279,7 @@ with center_col:
         if st.button("View Details →", key="vi_4"):
             show_aspect_modal("Exterior Walls", "Yellow")
 
-# --- RIGHT SIDEBAR: FLAGS, AI SUMMARY, FEEDBACK & EMBEDDED YELLOW ACTION CARD ---
+# --- RIGHT SIDEBAR: FLAGS, AI SUMMARY, FEEDBACK & UNIFIED YELLOW ACTION CARD ---
 with right_col:
     st.markdown("""
         <div class="flag-box">
@@ -271,10 +300,7 @@ with right_col:
     if st.button("View Full Analysis >", use_container_width=True):
         st.info("Full AI analysis view placeholder.")
 
-    # -------------------------------------------------------------------------
-    # ANNOTATION 4: BORDERLESS SCROLL CONTAINER
-    # Height capped at 250px so it fits proportionately alongside the issue box.
-    # -------------------------------------------------------------------------
+    # SCROLLABLE FEEDBACK CONTAINER
     st.subheader("Recent Feedback")
     
     if "feedback_list" not in st.session_state:
@@ -314,23 +340,16 @@ with right_col:
             """, unsafe_allow_html=True)
 
     # -------------------------------------------------------------------------
-    # ANNOTATION 5: INTEGRATED YELLOW ISSUE BOX WITH FULLY CONTAINED BUTTON
-    # Using container wrapping to embed the action button natively inside the card.
+    # ANNOTATION 4: SINGLE CONSOLIDATED HTML CARD CONTAINING BUTTON & TEXT
+    # Guarantees the yellow background fully encompasses title, subtext, and button.
     # -------------------------------------------------------------------------
-    yellow_card = st.container()
-    with yellow_card:
-        st.markdown('<div class="yellow-issue-box">', unsafe_allow_html=True)
-        st.markdown('<b style="color: #92400E; font-size: 0.95rem;">📝 REPORT AN ISSUE</b>', unsafe_allow_html=True)
-        st.markdown('<small style="color: #78350F; display: block; margin-bottom: 6px;">Log maintenance hazards directly to dispatch</small>', unsafe_allow_html=True)
-        
-        # Native Streamlit button rendered inside the yellow box div wrapper
-        if st.button("📢 Report the Issue", key="btn_report_an_issue", use_container_width=True):
-            try:
-                st.switch_page("pages/feedback.py")
-            except Exception:
-                st.switch_page("feedback.py")
-                
-        st.markdown('</div>', unsafe_allow_html=True)
+    st.markdown("""
+        <div class="yellow-card-container">
+            <span class="yellow-card-title">📝 REPORT AN ISSUE</span>
+            <span class="yellow-card-subtitle">Log maintenance hazards directly to dispatch</span>
+            <a href="?navigate=feedback" target="_self" class="yellow-card-button">📢 Report the Issue</a>
+        </div>
+    """, unsafe_allow_html=True)
 
 # -----------------------------------------------------------------------------
 # 3. BOTTOM CONTACTS BAR
