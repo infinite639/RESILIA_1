@@ -17,7 +17,7 @@ def show_aspect_modal(category_name, status_color):
         st.rerun()
 
 # -----------------------------------------------------------------------------
-# CUSTOM CSS FOR DASHBOARD UI
+# CUSTOM CSS FOR DASHBOARD UI & CONTAINERS
 # -----------------------------------------------------------------------------
 st.markdown("""
     <style>
@@ -79,8 +79,8 @@ st.markdown("""
         }
 
         /* -------------------------------------------------------------------------
-           ANNOTATION 1: REMOVE / MATCH CONTAINER BORDER TO PAGE BACKGROUND
-           Overriding Streamlit's default container outline for st.container(height=...)
+           ANNOTATION 1: REMOVE OUTLINE / BORDER FROM FEEDBACK SCROLL CONTAINER
+           Hides Streamlit's default container border while matching page background.
            ------------------------------------------------------------------------- */
         div[data-testid="stVerticalBlockBorderWrapper"] {
             border: none !important;
@@ -88,20 +88,48 @@ st.markdown("""
             background-color: #FAF6F0 !important;
         }
 
-        /* CUSTOM STYLING FOR REPORT AN ISSUE BUTTON */
-        div.stButton > button[key="btn_report_an_issue"] {
+        /* -------------------------------------------------------------------------
+           ANNOTATION 2: YELLOW ISSUE CARD CONTAINMENT & STYLING
+           Creates a soft yellow wrapper with subtle borders for seamless button nesting.
+           ------------------------------------------------------------------------- */
+        .yellow-issue-box {
+            background-color: #FEF3C7;
+            border: 1px solid #FDE68A;
+            border-radius: 10px;
+            padding: 16px;
+            text-align: center;
+            margin-top: 15px;
+        }
+
+        /* -------------------------------------------------------------------------
+           ANNOTATION 3: REMOVE DARK BORDER & FORMAT BUTTON INSIDE YELLOW CONTAINER
+           Eliminates dark gray/black borders, focus rings, and sets vibrant contrast.
+           ------------------------------------------------------------------------- */
+        div.yellow-issue-box div.stButton > button {
             background-color: #D97706 !important;
             color: #FFFFFF !important;
             border: none !important;
+            outline: none !important;
+            box-shadow: none !important;
             border-radius: 6px !important;
             font-weight: 700 !important;
-            font-size: 0.9rem !important;
-            height: 44px !important;
+            font-size: 0.88rem !important;
+            height: 40px !important;
+            margin-top: 8px !important;
         }
 
-        div.stButton > button[key="btn_report_an_issue"]:hover {
+        div.yellow-issue-box div.stButton > button:hover {
             background-color: #B45309 !important;
-            box-shadow: 0 4px 8px rgba(180, 83, 9, 0.25) !important;
+            color: #FFFFFF !important;
+            border: none !important;
+            box-shadow: 0 4px 10px rgba(180, 83, 9, 0.2) !important;
+        }
+
+        div.yellow-issue-box div.stButton > button:focus, 
+        div.yellow-issue-box div.stButton > button:active {
+            border: none !important;
+            outline: none !important;
+            box-shadow: none !important;
         }
     </style>
 """, unsafe_allow_html=True)
@@ -222,7 +250,7 @@ with center_col:
         if st.button("View Details →", key="vi_4"):
             show_aspect_modal("Exterior Walls", "Yellow")
 
-# --- RIGHT SIDEBAR: FLAGS, AI SUMMARY, BORDERLESS SCROLLABLE FEEDBACK & REPORT ---
+# --- RIGHT SIDEBAR: FLAGS, AI SUMMARY, FEEDBACK & EMBEDDED YELLOW ACTION CARD ---
 with right_col:
     st.markdown("""
         <div class="flag-box">
@@ -244,8 +272,8 @@ with right_col:
         st.info("Full AI analysis view placeholder.")
 
     # -------------------------------------------------------------------------
-    # ANNOTATION 2: BORDERLESS SCROLL CONTAINER
-    # Height is fixed to 270px, scrolling naturally without any outer outline.
+    # ANNOTATION 4: BORDERLESS SCROLL CONTAINER
+    # Height capped at 250px so it fits proportionately alongside the issue box.
     # -------------------------------------------------------------------------
     st.subheader("Recent Feedback")
     
@@ -271,7 +299,7 @@ with right_col:
             }
         ]
 
-    with st.container(height=270):
+    with st.container(height=250):
         for fb in st.session_state.feedback_list:
             badge_class = "badge-high" if "High" in fb["priority"] else "badge-medium"
             st.markdown(f"""
@@ -285,19 +313,24 @@ with right_col:
                 </div>
             """, unsafe_allow_html=True)
 
-    # REPORT AN ISSUE BUTTON CONTAINER
-    st.markdown("""
-        <div style="background-color: #FEF3C7; border: 1.5px solid #FCD34D; border-radius: 10px; padding: 14px; text-align: center; margin-top: 15px;">
-            <b style="color: #92400E; font-size: 0.95rem;">📝 REPORT AN ISSUE</b><br>
-            <small style="color: #78350F; display: block; margin-bottom: 10px;">Log maintenance hazards directly to dispatch</small>
-        </div>
-    """, unsafe_allow_html=True)
-    
-    if st.button("📢 Report the Issue", key="btn_report_an_issue", use_container_width=True):
-        try:
-            st.switch_page("pages/feedback.py")
-        except Exception:
-            st.switch_page("feedback.py")
+    # -------------------------------------------------------------------------
+    # ANNOTATION 5: INTEGRATED YELLOW ISSUE BOX WITH FULLY CONTAINED BUTTON
+    # Using container wrapping to embed the action button natively inside the card.
+    # -------------------------------------------------------------------------
+    yellow_card = st.container()
+    with yellow_card:
+        st.markdown('<div class="yellow-issue-box">', unsafe_allow_html=True)
+        st.markdown('<b style="color: #92400E; font-size: 0.95rem;">📝 REPORT AN ISSUE</b>', unsafe_allow_html=True)
+        st.markdown('<small style="color: #78350F; display: block; margin-bottom: 6px;">Log maintenance hazards directly to dispatch</small>', unsafe_allow_html=True)
+        
+        # Native Streamlit button rendered inside the yellow box div wrapper
+        if st.button("📢 Report the Issue", key="btn_report_an_issue", use_container_width=True):
+            try:
+                st.switch_page("pages/feedback.py")
+            except Exception:
+                st.switch_page("feedback.py")
+                
+        st.markdown('</div>', unsafe_allow_html=True)
 
 # -----------------------------------------------------------------------------
 # 3. BOTTOM CONTACTS BAR
