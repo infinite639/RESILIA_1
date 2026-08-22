@@ -1,516 +1,387 @@
 import streamlit as st
 from datetime import datetime
 
-st.set_page_config(page_title="RESILIA - Notifications", page_icon="🔔", layout="wide")
+st.set_page_config(page_title="RESILIA - Give Feedback", page_icon="🛡️", layout="wide")
 
 # -----------------------------------------------------------------------------
-# 1. INITIALIZE SESSION STATE DATA
+# 1. SUCCESS POP-UP MODAL (@st.dialog)
 # -----------------------------------------------------------------------------
-if "notifications" not in st.session_state:
-    st.session_state.notifications = [
-        {
-            "id": 1,
-            "title": "High Priority Issue Detected",
-            "type": "ALERT",
-            "message": "Structural crack detected on Building A-102. Immediate inspection is recommended.",
-            "building": "Building A-102",
-            "category": "Structural Stability",
-            "time": "10:30 AM",
-            "day": "Today",
-            "is_read": False,
-            "icon": "⚠️",
-            "bg_color": "#FEE2E2",
-            "details": "A structural displacement of >3.2mm was detected on the north-facing exterior wall via visual telemetry. Inspection team dispatch recommended."
-        },
-        {
-            "id": 2,
-            "title": "Maintenance Completed",
-            "type": "UPDATE",
-            "message": "Drainage cleaning at Building C-205 has been completed successfully.",
-            "building": "Building C-205",
-            "category": "Drainage",
-            "time": "9:15 AM",
-            "day": "Today",
-            "is_read": True,
-            "icon": "✅",
-            "bg_color": "#DCFCE7",
-            "details": "Sub-surface drainage clearance performed. Standard flow rate restored to 120 L/min. No blockage detected."
-        },
-        {
-            "id": 3,
-            "title": "New Feedback Received",
-            "type": "UPDATE",
-            "message": "A new feedback has been submitted for Building B-301.",
-            "building": "Building B-301",
-            "category": "Water Management",
-            "time": "8:45 AM",
-            "day": "Today",
-            "is_read": False,
-            "icon": "💬",
-            "bg_color": "#E0F2FE",
-            "details": "Resident logged report regarding water pressure fluctuation on floor 3. Severity tagged as Medium."
-        },
-        {
-            "id": 4,
-            "title": "Weather Alert",
-            "type": "ALERT",
-            "message": "Heavy rainfall expected in your area over the next 48 hours.",
-            "building": "Dubai, UAE",
-            "category": "Weather",
-            "time": "Yesterday, 6:20 PM",
-            "day": "Yesterday",
-            "is_read": False,
-            "icon": "⚠️",
-            "bg_color": "#FEF3C7",
-            "details": "NCMS regional advisory: Expected precipitation exceeding 45mm. Recommend verifying perimeter drainage and roof seal integrity."
-        },
-        {
-            "id": 5,
-            "title": "Building Assessment Completed",
-            "type": "UPDATE",
-            "message": "Assessment report is ready for Building D-404. View the full analysis.",
-            "building": "Building D-404",
-            "category": "Assessment",
-            "time": "Yesterday, 3:10 PM",
-            "day": "Yesterday",
-            "is_read": True,
-            "icon": "📋",
-            "bg_color": "#F3E8FF",
-            "details": "Annual Structural Integrity and HVAC Diagnostics report synthesized. Overall building score: 91/100."
-        },
-        {
-            "id": 6,
-            "title": "System Update",
-            "type": "SYSTEM",
-            "message": "RESILIA system was updated to improve detection accuracy.",
-            "building": "System Core",
-            "category": "System",
-            "time": "Yesterday, 11:45 AM",
-            "day": "Yesterday",
-            "is_read": False,
-            "icon": "⚙️",
-            "bg_color": "#F1F5F9",
-            "details": "v2.4.1 Model Deployment: False positive rate reduced by 14% on exterior surface crack classification models."
-        }
-    ]
-
-if "active_filter" not in st.session_state:
-    st.session_state.active_filter = "All"
-
-ALL_CATEGORIES = [
-    "Water Management", "Electricity", "Roof", "Structural Stability",
-    "Weather", "Exterior Walls", "Drainage", "Interior", "Security"
-]
-
-if "selected_categories" not in st.session_state:
-    st.session_state.selected_categories = ALL_CATEGORIES.copy()
+@st.dialog("Feedback Submitted Successfully")
+def show_success_modal(summary_data):
+    st.markdown("""
+        <div style="text-align: center; padding: 10px 0;">
+            <div style="font-size: 3.5rem; color: #16A34A; margin-bottom: 10px;">✅</div>
+            <h2 style="color: #111827; font-weight: 800; margin: 0;">Thank You!</h2>
+            <p style="color: #4B5563; font-size: 0.95rem; margin-top: 6px;">
+                Your feedback has been logged into the RESILIA Central System and synchronized with the Maintenance Dashboard.
+            </p>
+        </div>
+    """, unsafe_allow_html=True)
+    
+    st.divider()
+    st.markdown(f"""
+        **Submission Summary:**
+        * **Building Address:** {summary_data['building']}
+        * **Issue Category:** {summary_data['issue_type']}
+        * **Severity Level:** {summary_data['priority']}
+        * **Logged By:** {summary_data['user']} ({summary_data['contact']})
+        * **Timestamp:** {summary_data['date']}
+    """)
+    
+    st.info("🤖 **Next Action:** RESILIA's AI model will evaluate this incident and route notice to local municipal authorities.")
+    
+    if st.button("Return to Maintenance Dashboard", use_container_width=True):
+        try:
+            st.switch_page("pages/homepage.py")
+        except Exception:
+            st.switch_page("homepage.py")
 
 # -----------------------------------------------------------------------------
-# 2. POP-UP DIALOG (NOTIFICATION DETAILS)
-# -----------------------------------------------------------------------------
-@st.dialog("Notification Diagnostics")
-def show_notification_dialog(notification):
-    st.markdown(f"### {notification['icon']} {notification['title']}")
-    st.caption(f"**Timestamp:** {notification['time']} | **Category:** {notification['category']}")
-    st.divider()
-    st.markdown(f"**Location/Target:** `{notification['building']}`")
-    st.markdown(f"**Summary:** {notification['message']}")
-    
-    st.info(f"**Diagnostic Payload:**\n\n{notification['details']}")
-    
-    c1, c2 = st.columns([1, 1])
-    with c1:
-        if st.button("Mark as Read" if not notification['is_read'] else "Mark as Unread", use_container_width=True):
-            notification['is_read'] = not notification['is_read']
-            st.rerun()
-    with c2:
-        if st.button("Close Modal", use_container_width=True):
-            st.rerun()
-
-# -----------------------------------------------------------------------------
-# 3. GLOBAL CSS STYLING & UNIFIED COLOR SCHEMES
+# 2. UI STYLING & CUSTOM CSS
 # -----------------------------------------------------------------------------
 st.markdown("""
-    <style>
-        .stApp {
-            background-color: #FAF6F0;
-            color: #1E293B;
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-        }
+    <style>
+        .stApp {
+            background-color: #FAF8F5;
+            color: #111827;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+        }
 
-        #MainMenu, footer, header { visibility: hidden; }
+        #MainMenu, footer, header { visibility: hidden; }
 
-        .notif-card {
-            background-color: #FFFFFF;
-            border: 1px solid #E2E8F0;
-            border-radius: 10px;
-            padding: 16px;
-            margin-bottom: 12px;
-            transition: all 0.2s ease-in-out;
-        }
-        .notif-card:hover {
-            border-color: #CBD5E1;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.03);
-        }
+        /* Top Navigation Bar Styling */
+        .nav-container {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            background-color: #FFFFFF;
+            padding: 12px 40px;
+            border-bottom: 1px solid #E5E7EB;
+            margin-bottom: 30px;
+        }
 
-        .unread-dot {
-            height: 8px;
-            width: 8px;
-            background-color: #DC2626;
-            border-radius: 50%;
-            display: inline-block;
-        }
+        /* Form Container Box */
+        .form-card {
+            background-color: #FFFFFF;
+            border: 1px solid #E5E7EB;
+            border-radius: 16px;
+            padding: 32px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.02);
+            margin-bottom: 25px;
+        }
 
-        .sidebar-card {
-            background-color: #FFFFFF;
-            border: 1px solid #E2E8F0;
-            border-radius: 12px;
-            padding: 16px;
-            margin-bottom: 16px;
-        }
+        /* Step Badge Styling */
+        .step-badge {
+            background-color: #CE3834;
+            color: #FFFFFF;
+            border-radius: 50%;
+            width: 26px;
+            height: 26px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 700;
+            font-size: 0.85rem;
+            margin-right: 10px;
+        }
 
-        /* -------------------------------------------------------------------------
-           1. UNIFORM COLOR FOR SUB-CATEGORIES (TABS & SIDEBAR SUBCATEGORY BUTTONS)
-           All filters (All, Unread, Alerts, Updates, System) use a matching slate tone.
-           ------------------------------------------------------------------------- */
-        div.stButton > button {
-            border-radius: 6px !important;
-            background-color: #F1F5F9 !important;
-            color: #334155 !important;
-            border: 1px solid #CBD5E1 !important;
-            font-weight: 600 !important;
-            transition: all 0.2s ease;
-        }
-        div.stButton > button:hover {
-            background-color: #E2E8F0 !important;
-            color: #0F172A !important;
-            border-color: #94A3B8 !important;
-        }
+        .step-header {
+            display: flex;
+            align-items: center;
+            font-size: 1.15rem;
+            font-weight: 700;
+            color: #111827;
+            margin-bottom: 20px;
+            margin-top: 10px;
+        }
 
-        /* -------------------------------------------------------------------------
-           2. UNIFORM COLOR FOR CATEGORY CHECKBOXES
-           Applies a consistent dark slate theme to all multi-select categories.
-           ------------------------------------------------------------------------- */
-        div[data-testid="stCheckbox"] label {
-            color: #334155 !important;
-            font-weight: 500 !important;
-            font-size: 0.9rem !important;
-        }
+        /* Right Sidebar Cards */
+        .sidebar-card {
+            background-color: #FFFFFF;
+            border: 1px solid #E5E7EB;
+            border-radius: 14px;
+            padding: 22px;
+            margin-bottom: 20px;
+            box-shadow: 0 1px 2px rgba(0,0,0,0.02);
+        }
 
-        /* -------------------------------------------------------------------------
-           3. UNIFORM COLOR FOR ALL BOTTOM CONTACT AUTHORITY CARDS & BUTTONS
-           Every contact action button is styled uniformly in a soft amber accent.
-           ------------------------------------------------------------------------- */
-        .contact-box-unified {
-            background-color: #FFFFFF;
-            border: 1px solid #E2E8F0;
-            border-radius: 10px;
-            padding: 14px;
-            margin-bottom: 8px;
-            box-shadow: 0 1px 3px rgba(0,0,0,0.02);
-            text-align: center;
-        }
+        .emergency-help-card {
+            background-color: #FEF2F2;
+            border: 1px solid #FEE2E2;
+            border-radius: 14px;
+            padding: 20px;
+            color: #991B1B;
+        }
 
-        .btn-unified-contact {
-            display: block;
-            width: 100%;
-            text-align: center;
-            background-color: #D97706 !important;
-            color: #FFFFFF !important;
-            border: none !important;
-            border-radius: 6px !important;
-            padding: 8px 0 !important;
-            font-size: 0.85rem !important;
-            font-weight: 700 !important;
-            text-decoration: none !important;
-            transition: background-color 0.2s ease, box-shadow 0.2s ease;
-        }
-        .btn-unified-contact:hover {
-            background-color: #B45309 !important;
-            color: #FFFFFF !important;
-            box-shadow: 0 4px 10px rgba(180, 83, 9, 0.25);
-        }
-    </style>
+        /* Submit Button */
+        div.stButton > button[key="btn_submit_feedback"] {
+            background-color: #CE3834 !important;
+            color: #FFFFFF !important;
+            border: none !important;
+            border-radius: 8px !important;
+            font-weight: 700 !important;
+            font-size: 1rem !important;
+            height: 46px !important;
+        }
+
+        div.stButton > button[key="btn_reset_form"] {
+            background-color: #FFFFFF !important;
+            color: #CE3834 !important;
+            border: 1px solid #FCA5A5 !important;
+            border-radius: 8px !important;
+            font-weight: 600 !important;
+            font-size: 0.95rem !important;
+            height: 46px !important;
+        }
+    </style>
 """, unsafe_allow_html=True)
 
 # -----------------------------------------------------------------------------
-# 4. TOP NAVIGATION HEADER
+# 3. TOP NAVIGATION BAR (UNIFORM WITH CONTACTS PAGE)
 # -----------------------------------------------------------------------------
-header_cols = st.columns([1.5, 1, 1, 1.2, 1, 0.5])
+nav1, nav2, nav3 = st.columns([2, 3, 2])
 
-with header_cols[0]:
-    st.markdown("### 🛡️ **RESILIA**")
+with nav1:
+    if st.button("🛡️ RESILIA", key="nav_brand_home"):
+        try:
+            st.switch_page("pages/homepage.py")
+        except Exception:
+            st.switch_page("homepage.py")
 
-with header_cols[1]:
-    if st.button("🛠️ Maintenance", use_container_width=True):
-        try:
-            st.switch_page("app.py")
-        except Exception:
-            st.switch_page("main.py")
+with nav2:
+    st.write("")  # Center spacing
 
-with header_cols[2]:
-    if st.button("💬 Feedback", use_container_width=True):
-        try:
-            st.switch_page("pages/feedback.py")
-        except Exception:
-            st.switch_page("feedback.py")
-
-with header_cols[3]:
-    st.markdown("<div style='border-bottom: 3px solid #DC2626; text-align: center; padding-bottom: 4px;'><b>🔔 Notifications</b></div>", unsafe_allow_html=True)
-
-with header_cols[4]:
-    if st.button("ℹ️ About Model", use_container_width=True):
-        st.info("RESILIA Structural Diagnostics v2.4")
-
-with header_cols[5]:
-    st.markdown("👤")
+with nav3:
+    n_maint, n_feed, n_about = st.columns(3)
+    with n_maint:
+        if st.button("📑 Maintenance", key="nav_maint"):
+            try:
+                st.switch_page("pages/homepage.py")
+            except Exception:
+                st.switch_page("homepage.py")
+    with n_feed:
+        st.markdown("<b style='color: #CE3834; border-bottom: 2px solid #CE3834; padding-bottom: 4px;'>💬 Feedback</b>", unsafe_allow_html=True)
+    with n_about:
+        if st.button("ℹ️ About Model", key="nav_about"):
+            st.info("RESILIA AI Risk Assessment Model v2.4")
 
 st.divider()
 
 # -----------------------------------------------------------------------------
-# 5. DYNAMIC STATS COMPUTATION
+# 4. MAIN PAGE HEADER & ISOMETRIC HERO AREA
 # -----------------------------------------------------------------------------
-total_cnt = len(st.session_state.notifications)
-unread_cnt = sum(1 for n in st.session_state.notifications if not n["is_read"])
-alerts_cnt = sum(1 for n in st.session_state.notifications if n["type"] == "ALERT")
-updates_cnt = sum(1 for n in st.session_state.notifications if n["type"] == "UPDATE")
-system_cnt = sum(1 for n in st.session_state.notifications if n["type"] == "SYSTEM")
+hdr_col, img_col = st.columns([3.2, 1.8])
 
-# -----------------------------------------------------------------------------
-# 6. PAGE TITLE & MARK ALL AS READ
-# -----------------------------------------------------------------------------
-title_col1, title_col2 = st.columns([3, 1])
+with hdr_col:
+    st.markdown("<h1 style='font-size: 2.3rem; font-weight: 800; margin: 0;'>Give <span style='color: #CE3834;'>Feedback</span></h1>", unsafe_allow_html=True)
+    st.markdown("""
+        <p style='color: #4B5563; font-size: 1.05rem; line-height: 1.6; margin-top: 12px; max-width: 580px;'>
+            Help us improve building maintenance and resilience by sharing the issues you are experiencing. 
+            Your feedback enables RESILIA to take the right action, faster.
+        </p>
+    """, unsafe_allow_html=True)
 
-with title_col1:
-    st.markdown("""
-        <div style="display: flex; align-items: center; gap: 15px;">
-            <div style="background-color: #FEE2E2; padding: 12px; border-radius: 50%; font-size: 1.5rem;">🔔</div>
-            <div>
-                <h1 style="margin: 0; font-size: 1.8rem; font-weight: 700;">Notifications</h1>
-                <p style="margin: 0; color: #64748B; font-size: 0.9rem;">Stay updated on building assessments, feedback, and maintenance actions.</p>
-            </div>
-        </div>
-    """, unsafe_allow_html=True)
+with img_col:
+    # Stylized vector building graphic placeholder
+    st.markdown("""
+        <div style="text-align: center; background: radial-gradient(circle, #FEE2E2 0%, rgba(255,255,255,0) 70%); padding: 10px;">
+            <span style="font-size: 5rem;">🏢💬🏙️</span>
+        </div>
+    """, unsafe_allow_html=True)
 
-with title_col2:
-    st.markdown("<br>", unsafe_allow_html=True)
-    if st.button("✓ Mark all as read", use_container_width=True):
-        for n in st.session_state.notifications:
-            n["is_read"] = True
-        st.rerun()
-
-st.markdown("<br>", unsafe_allow_html=True)
+st.write("")
 
 # -----------------------------------------------------------------------------
-# 7. MAIN CONTENT & SIDEBAR GRID
+# 5. FORM AND SIDEBAR LAYOUT
 # -----------------------------------------------------------------------------
-main_col, side_col = st.columns([2.8, 1.2])
+left_form_col, right_info_col = st.columns([3.2, 1.8])
 
-with main_col:
-    # UNIFORM SUB-CATEGORY FILTER TABS
-    t_all, t_unread, t_alerts, t_updates, t_system = st.columns(5)
-    
-    with t_all:
-        if st.button(f"All ({total_cnt})", key="tab_all", use_container_width=True):
-            st.session_state.active_filter = "All"
-            st.rerun()
-    with t_unread:
-        if st.button(f"Unread ({unread_cnt})", key="tab_unread", use_container_width=True):
-            st.session_state.active_filter = "Unread"
-            st.rerun()
-    with t_alerts:
-        if st.button(f"Alerts ({alerts_cnt})", key="tab_alerts", use_container_width=True):
-            st.session_state.active_filter = "Alerts"
-            st.rerun()
-    with t_updates:
-        if st.button(f"Updates ({updates_cnt})", key="tab_updates", use_container_width=True):
-            st.session_state.active_filter = "Updates"
-            st.rerun()
-    with t_system:
-        if st.button(f"System ({system_cnt})", key="tab_system", use_container_width=True):
-            st.session_state.active_filter = "System"
-            st.rerun()
+with left_form_col:
+    with st.container():
+        st.markdown('<div class="form-card">', unsafe_allow_html=True)
+        
+        # --- SECTION 1: BUILDING INFORMATION ---
+        st.markdown('<div class="step-header"><span class="step-badge">1</span> Building Information</div>', unsafe_allow_html=True)
+        
+        building_address = st.text_input(
+            "Building Address*",
+            placeholder="🔍 Search or enter building address (e.g., Building A17, DIAC, Dubai)",
+            key="fb_address"
+        )
+        
+        b_col1, b_col2 = st.columns(2)
+        with b_col1:
+            property_type = st.selectbox(
+                "Property Type*",
+                ["Select property type", "Academic / Educational", "Residential Apartment", "Commercial Office", "Retail / Facility"],
+                key="fb_prop_type"
+            )
+        with b_col2:
+            user_role = st.selectbox(
+                "Your Role*",
+                ["Select your role", "Resident", "Student", "Faculty / Staff", "Visitor", "Property Manager"],
+                key="fb_role"
+            )
 
-    st.markdown(f"<small style='color: #64748B;'>Active Filter: <b>{st.session_state.active_filter}</b></small>", unsafe_allow_html=True)
-    st.divider()
+        st.write("")
+        
+        # --- SECTION 2: ISSUE DETAILS ---
+        st.markdown('<div class="step-header"><span class="step-badge">2</span> Issue Details</div>', unsafe_allow_html=True)
+        st.caption("Type of Issue*")
+        
+        # Category Selector Buttons Grid
+        issue_categories = [
+            ("💧 Water Management", "Water Management"),
+            ("⚡ Electricity", "Electricity"),
+            ("🏠 Roof", "Roof Management"),
+            ("🏗️ Structural Stability", "Structural Stability"),
+            ("🌧️ Weather", "Weather Related"),
+            ("🧱 Exterior Walls", "Exterior Walls"),
+            ("🚰 Drainage", "Drainage Systems"),
+            ("🚪 Interior", "Interior"),
+            ("🔒 Security", "Security")
+        ]
+        
+        selected_issue = st.radio(
+            "Select Issue Category",
+            options=[cat[1] for cat in issue_categories],
+            horizontal=True,
+            label_visibility="collapsed",
+            key="fb_issue_cat"
+        )
+        
+        issue_description = st.text_area(
+            "Describe the Issue*",
+            placeholder="Please describe the issue in detail...",
+            max_chars=1000,
+            key="fb_desc"
+        )
+        
+        d_col1, d_col2 = st.columns(2)
+        with d_col1:
+            first_noticed = st.date_input("When did you first notice this issue?*", key="fb_date")
+        with d_col2:
+            frequency = st.selectbox(
+                "How often does it occur?*",
+                ["Select frequency", "One-time occurrence", "Intermittent / Occasional", "Continuous / Daily"],
+                key="fb_freq"
+            )
 
-    filtered_list = []
-    for n in st.session_state.notifications:
-        if st.session_state.active_filter == "Unread" and n["is_read"]:
-            continue
-        elif st.session_state.active_filter == "Alerts" and n["type"] != "ALERT":
-            continue
-        elif st.session_state.active_filter == "Updates" and n["type"] != "UPDATE":
-            continue
-        elif st.session_state.active_filter == "System" and n["type"] != "SYSTEM":
-            continue
-        
-        if n["category"] in st.session_state.selected_categories or n["type"] == "SYSTEM" or n["category"] == "Assessment":
-            filtered_list.append(n)
+        st.caption("Impact / Severity*")
+        severity_level = st.radio(
+            "Severity Level",
+            ["Low", "Medium", "High", "Critical"],
+            index=2,
+            horizontal=True,
+            label_visibility="collapsed",
+            key="fb_severity"
+        )
 
-    days = ["Today", "Yesterday"]
-    
-    for day in days:
-        day_items = [item for item in filtered_list if item["day"] == day]
-        if day_items:
-            st.markdown(f"#### **{day}**")
-            for item in day_items:
-                unread_indicator = '<span class="unread-dot"></span>' if not item["is_read"] else ''
-                
-                card_col1, card_col2 = st.columns([4.5, 0.5])
-                
-                with card_col1:
-                    st.markdown(f"""
-                        <div class="notif-card">
-                            <div style="display: flex; justify-content: space-between; align-items: flex-start;">
-                                <div style="display: flex; gap: 12px; align-items: center;">
-                                    <div style="background-color: {item['bg_color']}; padding: 10px; border-radius: 50%; font-size: 1.2rem;">
-                                        {item['icon']}
-                                    </div>
-                                    <div>
-                                        <b>{item['title']}</b>
-                                        <p style="margin: 4px 0; font-size: 0.88rem; color: #475569;">{item['message']}</p>
-                                        <small style="color: #94A3B8;">🏢 {item['building']} &nbsp;•&nbsp; Tag: {item['category']}</small>
-                                    </div>
-                                </div>
-                                <div style="text-align: right;">
-                                    <small style="color: #94A3B8;">{item['time']}</small> {unread_indicator}
-                                </div>
-                            </div>
-                        </div>
-                    """, unsafe_allow_html=True)
-                
-                with card_col2:
-                    if st.button("➔", key=f"btn_open_{item['id']}"):
-                        show_notification_dialog(item)
+        st.caption("Add Photos or Videos (Optional)")
+        uploaded_files = st.file_uploader(
+            "Drag and drop files here or click to upload",
+            type=["jpg", "png", "mp4"],
+            accept_multiple_files=True,
+            key="fb_files"
+        )
 
-    if not filtered_list:
-        st.info("No notifications match the selected tab and category filters.")
+        st.write("")
 
-    st.markdown("<br>", unsafe_allow_html=True)
-    if st.button("Load More 🠗", use_container_width=True):
-        st.toast("All notifications loaded.", icon="ℹ️")
+        # --- SECTION 3: YOUR CONTACT INFORMATION ---
+        st.markdown('<div class="step-header"><span class="step-badge">3</span> Your Contact Information</div>', unsafe_allow_html=True)
+        
+        c_col1, c_col2 = st.columns(2)
+        with c_col1:
+            user_name = st.text_input("Your Name*", placeholder="Enter your name", key="fb_name")
+        with c_col2:
+            user_contact = st.text_input("Contact Number / Email*", placeholder="Enter phone number or email", key="fb_contact")
 
-# -----------------------------------------------------------------------------
-# 8. RIGHT SIDEBAR (SUMMARY & UNIFORM FILTERS)
-# -----------------------------------------------------------------------------
-with side_col:
-    st.markdown("""
-        <div class="sidebar-card">
-            <h4 style="margin-top:0;">Notification Summary</h4>
-            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
-                <div style="background-color: #F8FAFC; border: 1px solid #E2E8F0; padding: 12px; border-radius: 8px; text-align: center;">
-                    <span style="font-size: 1.2rem;">🔔</span> <b>{unread_cnt}</b><br>
-                    <small style="color: #64748B;">Unread</small>
-                </div>
-                <div style="background-color: #F8FAFC; border: 1px solid #E2E8F0; padding: 12px; border-radius: 8px; text-align: center;">
-                    <span style="font-size: 1.2rem;">⚠️</span> <b>{alerts_cnt}</b><br>
-                    <small style="color: #64748B;">Alerts</small>
-                </div>
-                <div style="background-color: #F8FAFC; border: 1px solid #E2E8F0; padding: 12px; border-radius: 8px; text-align: center;">
-                    <span style="font-size: 1.2rem;">🔄</span> <b>{updates_cnt}</b><br>
-                    <small style="color: #64748B;">Updates</small>
-                </div>
-                <div style="background-color: #F8FAFC; border: 1px solid #E2E8F0; padding: 12px; border-radius: 8px; text-align: center;">
-                    <span style="font-size: 1.2rem;">⚙️</span> <b>{system_cnt}</b><br>
-                    <small style="color: #64748B;">System</small>
-                </div>
-            </div>
-        </div>
-    """.format(unread_cnt=unread_cnt, alerts_cnt=alerts_cnt, updates_cnt=updates_cnt, system_cnt=system_cnt), unsafe_allow_html=True)
+        receive_updates = st.checkbox("I would like to receive updates about this issue via email / SMS.", value=True, key="fb_updates")
 
-    # UNIFORM SUB-CATEGORY SIDEBAR BUTTONS
-    st.markdown("#### **Filter Notifications**")
-    if st.button(f"🔔 All Notifications ({total_cnt})", use_container_width=True):
-        st.session_state.active_filter = "All"
-        st.rerun()
-    if st.button(f"⚠️ Alerts ({alerts_cnt})", use_container_width=True):
-        st.session_state.active_filter = "Alerts"
-        st.rerun()
-    if st.button(f"💬 Updates ({updates_cnt})", use_container_width=True):
-        st.session_state.active_filter = "Updates"
-        st.rerun()
-    if st.button(f"⚙️ System ({system_cnt})", use_container_width=True):
-        st.session_state.active_filter = "System"
-        st.rerun()
+        st.write("")
 
-    st.divider()
+        # --- FORM SUBMIT BUTTONS ---
+        btn_col1, btn_col2 = st.columns([2, 1.5])
+        with btn_col1:
+            submit_clicked = st.button("🚀 Submit Feedback", key="btn_submit_feedback", use_container_width=True)
+        with btn_col2:
+            reset_clicked = st.button("🔄 Reset Form", key="btn_reset_form", use_container_width=True)
 
-    # UNIFORM CATEGORY CHECKBOXES
-    st.markdown("#### **Filter by Category**")
-    selected_cats = []
-    for cat in ALL_CATEGORIES:
-        is_checked = cat in st.session_state.selected_categories
-        if st.checkbox(cat, value=is_checked, key=f"chk_{cat}"):
-            selected_cats.append(cat)
-            
-    if selected_cats != st.session_state.selected_categories:
-        st.session_state.selected_categories = selected_cats
-        st.rerun()
+        if submit_clicked:
+            if not building_address or not issue_description or not user_name:
+                st.error("⚠️ Please fill in all required fields marked with an asterisk (*).")
+            else:
+                # Append new feedback into st.session_state (shared with homepage.py)
+                if "feedback_list" not in st.session_state:
+                    st.session_state.feedback_list = []
+
+                new_feedback_entry = {
+                    "user": user_name if user_name else "Anonymous Resident",
+                    "date": datetime.now().strftime("%b %d, %Y"),
+                    "text": issue_description,
+                    "priority": f"{severity_level} Priority",
+                    "building": building_address if building_address else "Building A17",
+                    "issue_type": selected_issue,
+                    "contact": user_contact
+                }
+
+                # Insert at top of list so it shows as most recent on homepage
+                st.session_state.feedback_list.insert(0, new_feedback_entry)
+
+                # Show Success Pop-up Modal with Green Tick
+                show_success_modal(new_feedback_entry)
+
+        st.markdown('</div>', unsafe_allow_html=True)
 
 # -----------------------------------------------------------------------------
-# 9. BOTTOM CONTACTS BAR (UNIFORM COLOR PALETTE)
+# 6. RIGHT SIDEBAR GUIDANCE CARDS
 # -----------------------------------------------------------------------------
+with right_info_col:
+    # Card 1: Why Your Feedback Matters
+    st.markdown("""
+        <div class="sidebar-card">
+            <h4 style="margin: 0 0 10px 0; font-weight: 700;">👥 Why Your Feedback Matters</h4>
+            <p style="font-size: 0.85rem; color: #4B5563; line-height: 1.5;">
+                Your reports help RESILIA's AI detect problems early, prioritize maintenance actions, and improve building resilience for everyone.
+            </p>
+            <ul style="font-size: 0.85rem; color: #374151; padding-left: 18px; margin-top: 10px; line-height: 1.8;">
+                <li>🤖 <b>Issues analyzed</b> by our AI system</li>
+                <li>🎯 <b>Assigned</b> to the right authorities</li>
+                <li>⚡ <b>Faster response</b> and resolution</li>
+                <li>🛡️ <b>Safer, more resilient</b> communities</li>
+            </ul>
+        </div>
+    """, unsafe_allow_html=True)
+
+    # Card 2: Tips for Helpful Feedback
+    st.markdown("""
+        <div class="sidebar-card">
+            <h4 style="margin: 0 0 10px 0; font-weight: 700;">💡 Tips for Helpful Feedback</h4>
+            <ul style="font-size: 0.85rem; color: #374151; padding-left: 18px; margin: 0; line-height: 1.9;">
+                <li>☑️ Be as specific as possible about the issue.</li>
+                <li>☑️ Mention the exact location (if possible).</li>
+                <li>☑️ Add photos or videos to help us understand better.</li>
+                <li>☑️ Share how long the issue has been happening.</li>
+            </ul>
+        </div>
+    """, unsafe_allow_html=True)
+
+    # Card 3: Need Immediate Assistance Emergency Banner
+    st.markdown("""
+        <div class="emergency-help-card">
+            <h4 style="margin: 0 0 8px 0; font-weight: 700; color: #DC2626;">📞 Need Immediate Assistance?</h4>
+            <p style="font-size: 0.85rem; margin: 0; line-height: 1.5; color: #7F1D1D;">
+                For emergencies or urgent safety hazards, please contact your building management or local authorities directly.
+            </p>
+        </div>
+    """, unsafe_allow_html=True)
+
+    if st.button("📞 Open Contacts Directory", key="btn_to_contacts", use_container_width=True):
+        try:
+            st.switch_page("pages/contacts.py")
+        except Exception:
+            st.switch_page("contacts.py")
+
+# Footer
 st.divider()
-st.subheader("Contact the Right Authority")
-
-cnt1, cnt2, cnt3, cnt4, cnt5 = st.columns(5)
-
-def nav_to_contacts():
-    try:
-        st.switch_page("pages/contacts.py")
-    except Exception:
-        st.switch_page("contacts.py")
-
-with cnt1:
-    st.markdown("""
-        <div class="contact-box-unified">
-            <b style="color: #1E293B;">Property Management</b><br>
-            <small style="color: #64748B;">+971 4 123 4567</small>
-            <br><br>
-            <a href="javascript:void(0)" class="btn-unified-contact">Contact</a>
-        </div>
-    """, unsafe_allow_html=True)
-
-with cnt2:
-    st.markdown("""
-        <div class="contact-box-unified">
-            <b style="color: #1E293B;">Water / Drainage</b><br>
-            <small style="color: #64748B;">Dubai Municipality — 800 900</small>
-            <br><br>
-            <a href="javascript:void(0)" class="btn-unified-contact">Contact</a>
-        </div>
-    """, unsafe_allow_html=True)
-
-with cnt3:
-    st.markdown("""
-        <div class="contact-box-unified">
-            <b style="color: #1E293B;">Electricity</b><br>
-            <small style="color: #64748B;">DEWA — 991</small>
-            <br><br>
-            <a href="javascript:void(0)" class="btn-unified-contact">Contact</a>
-        </div>
-    """, unsafe_allow_html=True)
-
-with cnt4:
-    st.markdown("""
-        <div class="contact-box-unified">
-            <b style="color: #1E293B;">Structural / Safety</b><br>
-            <small style="color: #64748B;">Dubai Civil Defense — 997</small>
-            <br><br>
-            <a href="javascript:void(0)" class="btn-unified-contact">Contact</a>
-        </div>
-    """, unsafe_allow_html=True)
-
-with cnt5:
-    st.markdown("""
-        <div class="contact-box-unified">
-            <b style="color: #1E293B;">Emergency</b><br>
-            <small style="color: #64748B;">Emergency Services — 999</small>
-            <br><br>
-            <a href="javascript:void(0)" class="btn-unified-contact">Call Now</a>
-        </div>
-    """, unsafe_allow_html=True)
-
-st.divider()
-st.caption("© 2026 RESILIA. All rights reserved. | About Us | How It Works | Privacy Policy | Terms of Use | Data Sources | Contact Us")
+st.caption("🛡️ RESILIA — © 2026 RESILIA. All rights reserved.")
