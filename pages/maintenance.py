@@ -7,10 +7,11 @@ from geopy.extra.rate_limiter import RateLimiter
 st.set_page_config(page_title="RESILIA - Maintenance Dashboard", page_icon="🛡️", layout="wide")
 
 # -----------------------------------------------------------------------------
-# GPS & GEOCODING INITIALIZATION (DEFAULT: DUBAI/SHARJAH METRO AREA)
+# GPS & GEOCODING INITIALIZATION (DEFAULT: DUBAI / SHARJAH AREA)
 # -----------------------------------------------------------------------------
-geolocator = Nominatim(user_agent="resilia_maintenance_app")
+geolocator = Nominatim(user_agent="resilia_interactive_app")
 geocode = RateLimiter(geolocator.geocode, min_delay_seconds=1)
+reverse = RateLimiter(geolocator.reverse, min_delay_seconds=1)
 
 DEFAULT_LAT = 25.1972
 DEFAULT_LON = 55.2744
@@ -156,7 +157,7 @@ st.markdown("""
 """, unsafe_allow_html=True)
 
 # -----------------------------------------------------------------------------
-# 1. TOP NAVIGATION HEADER
+# 1. TOP NAVIGATION HEADER & FUNCTIONAL GPS SEARCH
 # -----------------------------------------------------------------------------
 nav_col1, nav_col2, nav_col3 = st.columns([1.5, 3, 1.8])
 
@@ -164,25 +165,25 @@ with nav_col1:
     st.markdown("### 🛡️ **RESILIA**")
     st.caption("Building Intelligence for Safer Communities")
 
-# Search Bar configured with Geocoding lookup for UAE Locations
 with nav_col2:
     search_input = st.text_input(
         "Search Location",
-        placeholder="🔍 Search address or building (e.g. DIAC, Dubai, Sharjah...)",
+        placeholder="🔍 Search building or location in UAE (e.g., DIAC, Sharjah University, Al Majaz)...",
         label_visibility="collapsed",
         key="main_search_input"
     )
     if search_input:
         try:
-            query_with_country = f"{search_input}, UAE"
+            # Localize search within UAE
+            query_with_country = f"{search_input}, UAE" if "uae" not in search_input.lower() else search_input
             location = geocode(query_with_country)
             if location:
                 st.session_state.map_center = [location.latitude, location.longitude]
                 st.session_state.selected_address = location.address
             else:
-                st.warning("Location not found in UAE. Try a broader landmark name.")
+                st.warning("Location not found in UAE. Try a more specific landmark name.")
         except Exception:
-            pass
+            st.error("Error connecting to geocoding services.")
 
 with nav_col3:
     c_help, c_notif, c_user = st.columns([1, 1.2, 1.8])
@@ -233,8 +234,9 @@ with left_col:
         if st.button(f"{cat_name} {dot}", key=f"cat_{cat_name}", use_container_width=True):
             show_aspect_modal(cat_name, status)
 
-# --- CENTER CANVAS: BUILDING DETAILS & GPS FOLIUM MAP ---
+# --- CENTER CANVAS: BUILDING DETAILS & INTERACTIVE GPS MAP ---
 with center_col:
+    # DYNAMIC ADDRESS BOX OVER THE MAP
     st.markdown(f"""
         <div class="card-box">
             <div style="display: flex; justify-content: space-between; align-items: center;">
@@ -246,7 +248,10 @@ with center_col:
                     <span><b>Floors:</b> 5</span>
                 </div>
             </div>
-            <p style="color: #6B7280; margin-top: 5px;">📍 {st.session_state.selected_address}</p>
+            <p style="color: #059669; font-weight: 600; margin-top: 5px;">📍 Selected Location Address:</p>
+            <p style="color: #374151; background-color: #F3F4F6; padding: 8px; border-radius: 6px; font-size: 0.9rem;">
+                {st.session_state.selected_address}
+            </p>
         </div>
     """, unsafe_allow_html=True)
 
@@ -255,7 +260,7 @@ with center_col:
     with v2: st.button("Map View", use_container_width=True)
     with v3: st.button("Street View", use_container_width=True)
 
-    # --- FOLIUM INTERACTIVE GPS MAP INTEGRATION ---
+    # CREATE FOLIUM MAP WITH CLICK HANDLER
     m = folium.Map(
         location=st.session_state.map_center,
         zoom_start=14,
@@ -265,13 +270,37 @@ with center_col:
     folium.Marker(
         location=st.session_state.map_center,
         popup=st.session_state.selected_address,
-        tooltip="Selected Building / GPS Pin",
+        tooltip="Click anywhere on map to select a new location",
         icon=folium.Icon(color="red", icon="info-sign")
     ).add_to(m)
 
-    st_folium(m, width="100%", height=350, returned_objects=[])
+    # Capture map clicks dynamically
+    map_data = st_folium(
+        m, 
+        width="100%", 
+        height=350, 
+        returned_objects=["last_clicked"]
+    )
 
-    st.caption(f"🌐 **GPS Coordinates:** Lat `{st.session_state.map_center[0]:.4f}`, Lon `{st.session_state.map_center[1]:.4f}`")
+    # Process Map Clicks -> Perform Reverse Geocoding & Update State
+    if map_data and map_data.get("last_clicked"):
+        clicked_lat = map_data["last_clicked"]["lat"]
+        clicked_lon = map_data["last_clicked"]["lng"]
+        
+        # Check if click is new to prevent infinite re-rendering loops
+        if [clicked_lat, clicked_lon] != st.session_state.map_center:
+            st.session_state.map_center = [clicked_lat, clicked_lon]
+            try:
+                rev_location = reverse(f"{clicked_lat}, {clicked_lon}")
+                if rev_location:
+                    st.session_state.selected_address = rev_location.address
+                else:
+                    st.session_state.selected_address = f"Custom Pin at Lat: {clicked_lat:.5f}, Lon: {clicked_lon:.5f}"
+            except Exception:
+                st.session_state.selected_address = f"GPS Coordinates: {clicked_lat:.5f}, {clicked_lon:.5f}"
+            st.rerun()
+
+    st.caption(f"🌐 **Current GPS Coordinates:** Lat `{st.session_state.map_center[0]:.5f}`, Lon `{st.session_state.map_center[1]:.5f}`")
 
     st.subheader("AI Insights")
     i1, i2, i3, i4 = st.columns(4)
