@@ -7,21 +7,28 @@ from geopy.extra.rate_limiter import RateLimiter
 st.set_page_config(page_title="RESILIA - Maintenance Dashboard", page_icon="🛡️", layout="wide")
 
 # -----------------------------------------------------------------------------
-# GPS & GEOCODING INITIALIZATION (DEFAULT: DUBAI / SHARJAH AREA)
+# GPS & GEOCODING INITIALIZATION
+# Default: Dubai International Academic City (DIAC), Dubai, UAE
 # -----------------------------------------------------------------------------
-geolocator = Nominatim(user_agent="resilia_interactive_app")
+geolocator = Nominatim(user_agent="resilia_interactive_app_v2")
 geocode = RateLimiter(geolocator.geocode, min_delay_seconds=1)
 reverse = RateLimiter(geolocator.reverse, min_delay_seconds=1)
 
-DEFAULT_LAT = 25.1972
-DEFAULT_LON = 55.2744
+DEFAULT_LAT = 25.1212
+DEFAULT_LON = 55.3881
 
 if "map_center" not in st.session_state:
     st.session_state.map_center = [DEFAULT_LAT, DEFAULT_LON]
-if "selected_address" not in st.session_state:
-    st.session_state.selected_address = "Dubai International Academic City, Dubai, UAE"
 
-# Query parameter handling for the Report Issue button click
+if "location_data" not in st.session_state:
+    st.session_state.location_data = {
+        "display_name": "Dubai International Academic City",
+        "full_address": "Dubai International Academic City, Dubai, United Arab Emirates",
+        "city": "Dubai",
+        "country": "United Arab Emirates"
+    }
+
+# Handle navigation redirects seamlessly
 if st.query_params.get("navigate") == "feedback":
     st.query_params.clear()
     try:
@@ -44,7 +51,7 @@ def show_aspect_modal(category_name, status_color):
         st.rerun()
 
 # -----------------------------------------------------------------------------
-# CUSTOM CSS FOR DASHBOARD UI
+# CUSTOM STYLING (PREVENTS FULL PAGE LAYOUT SHIFTS)
 # -----------------------------------------------------------------------------
 st.markdown("""
     <style>
@@ -146,18 +153,11 @@ st.markdown("""
             box-shadow: 0 4px 10px rgba(180, 83, 9, 0.25);
             text-decoration: none !important;
         }
-
-        .yellow-card-button:focus,
-        .yellow-card-button:active {
-            border: none !important;
-            outline: none !important;
-            box-shadow: none !important;
-        }
     </style>
 """, unsafe_allow_html=True)
 
 # -----------------------------------------------------------------------------
-# 1. TOP NAVIGATION HEADER & FUNCTIONAL GPS SEARCH
+# 1. TOP NAVIGATION HEADER WITH FORM SEARCH (PREVENTS PAGE LIGHT-OUT/FLASHING)
 # -----------------------------------------------------------------------------
 nav_col1, nav_col2, nav_col3 = st.columns([1.5, 3, 1.8])
 
@@ -166,24 +166,37 @@ with nav_col1:
     st.caption("Building Intelligence for Safer Communities")
 
 with nav_col2:
-    search_input = st.text_input(
-        "Search Location",
-        placeholder="🔍 Search building or location in UAE (e.g., DIAC, Sharjah University, Al Majaz)...",
-        label_visibility="collapsed",
-        key="main_search_input"
-    )
-    if search_input:
+    with st.form(key="search_form", clear_on_submit=False):
+        f_col1, f_col2 = st.columns([4, 1])
+        with f_col1:
+            search_query = st.text_input(
+                "Search Location",
+                placeholder="🔍 Type location in UAE (e.g. DIAC, Sharjah University, Burj Khalifa)...",
+                label_visibility="collapsed"
+            )
+        with f_col2:
+            submit_search = st.form_submit_button("Search 📍", use_container_width=True)
+
+    if submit_search and search_query.strip():
         try:
-            # Localize search within UAE
-            query_with_country = f"{search_input}, UAE" if "uae" not in search_input.lower() else search_input
-            location = geocode(query_with_country)
-            if location:
-                st.session_state.map_center = [location.latitude, location.longitude]
-                st.session_state.selected_address = location.address
+            target_query = search_query if "uae" in search_query.lower() else f"{search_query}, UAE"
+            loc_result = geocode(target_query)
+            if loc_result:
+                st.session_state.map_center = [loc_result.latitude, loc_result.longitude]
+                raw_address = loc_result.address
+                address_parts = [p.strip() for p in raw_address.split(",")]
+                
+                st.session_state.location_data = {
+                    "display_name": address_parts[0],
+                    "full_address": raw_address,
+                    "city": address_parts[-3] if len(address_parts) >= 3 else "UAE",
+                    "country": address_parts[-1]
+                }
+                st.rerun()
             else:
-                st.warning("Location not found in UAE. Try a more specific landmark name.")
-        except Exception:
-            st.error("Error connecting to geocoding services.")
+                st.toast("⚠️ Location not found in UAE. Try a more specific landmark name.")
+        except Exception as e:
+            st.toast(f"Geocoding Error: {e}")
 
 with nav_col3:
     c_help, c_notif, c_user = st.columns([1, 1.2, 1.8])
@@ -208,12 +221,12 @@ st.divider()
 # -----------------------------------------------------------------------------
 left_col, center_col, right_col = st.columns([1.2, 3, 1.4])
 
-# --- LEFT SIDEBAR: CATEGORIES & OVERVIEW ---
+# --- LEFT SIDEBAR: CATEGORIES ---
 with left_col:
-    st.markdown("""
+    st.markdown(f"""
         <div class="card-box" style="background-color: #FFFBEB; border-color: #FCD34D;">
-            <b>🏢 Building Overview</b><br>
-            <small style="color: #4B5563;">Building A17</small>
+            <b>🏢 Monitored Location</b><br>
+            <small style="color: #4B5563;">{st.session_state.location_data['display_name']}</small>
         </div>
     """, unsafe_allow_html=True)
     
@@ -234,24 +247,27 @@ with left_col:
         if st.button(f"{cat_name} {dot}", key=f"cat_{cat_name}", use_container_width=True):
             show_aspect_modal(cat_name, status)
 
-# --- CENTER CANVAS: BUILDING DETAILS & INTERACTIVE GPS MAP ---
+# --- CENTER CANVAS: DYNAMIC LOCATION DISPLAY & MAP INTERACTION ---
 with center_col:
-    # DYNAMIC ADDRESS BOX OVER THE MAP
+    # ACTIVATED REAL-TIME LOCATION INFORMATION CARD (REPLACED BUILDING A17)
     st.markdown(f"""
         <div class="card-box">
-            <div style="display: flex; justify-content: space-between; align-items: center;">
-                <h2>Building A17 ⭐</h2>
+            <div style="display: flex; justify-content: space-between; align-items: flex-start;">
                 <div>
-                    <span style="margin-right: 15px;"><b>Building Type:</b> Academic</span>
-                    <span style="margin-right: 15px;"><b>Year Built:</b> 2008</span>
-                    <span style="margin-right: 15px;"><b>Total Area:</b> 12,450 m²</span>
-                    <span><b>Floors:</b> 5</span>
+                    <h2 style="margin: 0; color: #111827;">📍 {st.session_state.location_data['display_name']}</h2>
+                    <p style="color: #059669; font-weight: 600; margin-top: 6px; font-size: 0.9rem;">
+                        Detailed Resolved Address:
+                    </p>
+                    <p style="color: #374151; background-color: #F3F4F6; padding: 10px; border-radius: 6px; font-size: 0.88rem; margin-top: 2px;">
+                        {st.session_state.location_data['full_address']}
+                    </p>
                 </div>
             </div>
-            <p style="color: #059669; font-weight: 600; margin-top: 5px;">📍 Selected Location Address:</p>
-            <p style="color: #374151; background-color: #F3F4F6; padding: 8px; border-radius: 6px; font-size: 0.9rem;">
-                {st.session_state.selected_address}
-            </p>
+            <div style="display: flex; gap: 20px; font-size: 0.85rem; color: #4B5563; margin-top: 10px;">
+                <span><b>Latitude:</b> {st.session_state.map_center[0]:.5f}</span>
+                <span><b>Longitude:</b> {st.session_state.map_center[1]:.5f}</span>
+                <span><b>Region:</b> {st.session_state.location_data['city']}</span>
+            </div>
         </div>
     """, unsafe_allow_html=True)
 
@@ -260,49 +276,63 @@ with center_col:
     with v2: st.button("Map View", use_container_width=True)
     with v3: st.button("Street View", use_container_width=True)
 
-    # CREATE FOLIUM MAP WITH CLICK HANDLER
+    # MAP GENERATION WITH INTERACTIVE CLICKING
     m = folium.Map(
         location=st.session_state.map_center,
-        zoom_start=14,
+        zoom_start=15,
         control_scale=True
     )
 
     folium.Marker(
         location=st.session_state.map_center,
-        popup=st.session_state.selected_address,
-        tooltip="Click anywhere on map to select a new location",
+        popup=st.session_state.location_data['display_name'],
+        tooltip="Selected Location — Click anywhere on the map to re-pin",
         icon=folium.Icon(color="red", icon="info-sign")
     ).add_to(m)
 
-    # Capture map clicks dynamically
     map_data = st_folium(
         m, 
         width="100%", 
-        height=350, 
+        height=380, 
         returned_objects=["last_clicked"]
     )
 
-    # Process Map Clicks -> Perform Reverse Geocoding & Update State
+    # MAP CLICK REVERSE GEOCODING LOGIC
     if map_data and map_data.get("last_clicked"):
         clicked_lat = map_data["last_clicked"]["lat"]
         clicked_lon = map_data["last_clicked"]["lng"]
         
-        # Check if click is new to prevent infinite re-rendering loops
-        if [clicked_lat, clicked_lon] != st.session_state.map_center:
+        # Trigger update only if new location was clicked
+        if [round(clicked_lat, 4), round(clicked_lon, 4)] != [round(st.session_state.map_center[0], 4), round(st.session_state.map_center[1], 4)]:
             st.session_state.map_center = [clicked_lat, clicked_lon]
             try:
-                rev_location = reverse(f"{clicked_lat}, {clicked_lon}")
-                if rev_location:
-                    st.session_state.selected_address = rev_location.address
+                rev_loc = reverse(f"{clicked_lat}, {clicked_lon}")
+                if rev_loc:
+                    raw_addr = rev_loc.address
+                    parts = [p.strip() for p in raw_addr.split(",")]
+                    st.session_state.location_data = {
+                        "display_name": parts[0] if parts else "Selected Location",
+                        "full_address": raw_addr,
+                        "city": parts[-3] if len(parts) >= 3 else "UAE",
+                        "country": parts[-1]
+                    }
                 else:
-                    st.session_state.selected_address = f"Custom Pin at Lat: {clicked_lat:.5f}, Lon: {clicked_lon:.5f}"
+                    st.session_state.location_data = {
+                        "display_name": f"Pin Point ({clicked_lat:.4f}, {clicked_lon:.4f})",
+                        "full_address": f"Coordinates: {clicked_lat:.5f}, {clicked_lon:.5f}",
+                        "city": "UAE",
+                        "country": "United Arab Emirates"
+                    }
             except Exception:
-                st.session_state.selected_address = f"GPS Coordinates: {clicked_lat:.5f}, {clicked_lon:.5f}"
+                st.session_state.location_data = {
+                    "display_name": "Custom GPS Location",
+                    "full_address": f"Lat: {clicked_lat:.5f}, Lon: {clicked_lon:.5f}",
+                    "city": "UAE",
+                    "country": "United Arab Emirates"
+                }
             st.rerun()
 
-    st.caption(f"🌐 **Current GPS Coordinates:** Lat `{st.session_state.map_center[0]:.5f}`, Lon `{st.session_state.map_center[1]:.5f}`")
-
-    st.subheader("AI Insights")
+    st.subheader("AI Diagnostics & Insights")
     i1, i2, i3, i4 = st.columns(4)
     
     with i1:
@@ -325,7 +355,7 @@ with center_col:
         if st.button("View Details →", key="vi_4"):
             show_aspect_modal("Exterior Walls", "Yellow")
 
-# --- RIGHT SIDEBAR: FLAGS, AI SUMMARY, FEEDBACK & UNIFIED YELLOW ACTION CARD ---
+# --- RIGHT SIDEBAR: FLAGS, AI SUMMARY, FEEDBACK ---
 with right_col:
     st.markdown("""
         <div class="flag-box">
@@ -336,42 +366,42 @@ with right_col:
 
     st.markdown("""
         <div class="card-box">
-            <h4>AI Summary</h4>
-            <p style="color: #6B7280; font-size: 0.85rem;">Based on aerial analysis, available records, weather data, and community feedback.</p>
+            <h4>AI Telemetry Summary</h4>
+            <p style="color: #6B7280; font-size: 0.85rem;">Based on aerial analysis, local sensor records, weather telemetry, and community reports.</p>
             <div style="background-color: #F8FAFC; border: 1px dashed #CBD5E1; padding: 15px; border-radius: 6px; text-align: center; color: #64748B; font-size: 0.85rem; margin-bottom: 10px;">
-                [ AI Summary Content Placeholder — To be populated by ML Backend ]
+                [ AI Analytics Active for Selected Coordinates ]
             </div>
         </div>
     """, unsafe_allow_html=True)
+    
     if st.button("View Full Analysis >", use_container_width=True):
         st.info("Full AI analysis view placeholder.")
 
-    # SCROLLABLE FEEDBACK CONTAINER
     st.subheader("Recent Feedback")
     
     if "feedback_list" not in st.session_state:
         st.session_state.feedback_list = [
             {
                 "user": "Resident",
-                "date": "May 18, 2026",
+                "date": "Aug 2026",
                 "text": "Water leaking from ceiling during heavy rain.",
                 "priority": "High Priority"
             },
             {
                 "user": "Anonymous",
-                "date": "May 16, 2026",
+                "date": "Aug 2026",
                 "text": "Water accumulation near basement entrance.",
                 "priority": "Medium Priority"
             },
             {
                 "user": "Faculty Member",
-                "date": "May 14, 2026",
+                "date": "Aug 2026",
                 "text": "Flickering lights in the 2nd floor hall.",
                 "priority": "Medium Priority"
             }
         ]
 
-    with st.container(height=250):
+    with st.container(height=240):
         for fb in st.session_state.feedback_list:
             badge_class = "badge-high" if "High" in fb["priority"] else "badge-medium"
             st.markdown(f"""
