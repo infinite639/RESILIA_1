@@ -8,9 +8,8 @@ st.set_page_config(page_title="RESILIA - Maintenance Dashboard", page_icon="🛡
 
 # -----------------------------------------------------------------------------
 # GPS & GEOCODING INITIALIZATION
-# Default: Dubai International Academic City (DIAC), Dubai, UAE
 # -----------------------------------------------------------------------------
-geolocator = Nominatim(user_agent="resilia_interactive_app_v2")
+geolocator = Nominatim(user_agent="resilia_interactive_app_v3")
 geocode = RateLimiter(geolocator.geocode, min_delay_seconds=1)
 reverse = RateLimiter(geolocator.reverse, min_delay_seconds=1)
 
@@ -28,7 +27,7 @@ if "location_data" not in st.session_state:
         "country": "United Arab Emirates"
     }
 
-# Handle navigation redirects seamlessly
+# Handle navigation redirects
 if st.query_params.get("navigate") == "feedback":
     st.query_params.clear()
     try:
@@ -51,7 +50,7 @@ def show_aspect_modal(category_name, status_color):
         st.rerun()
 
 # -----------------------------------------------------------------------------
-# CUSTOM STYLING (PREVENTS FULL PAGE LAYOUT SHIFTS)
+# CUSTOM STYLING
 # -----------------------------------------------------------------------------
 st.markdown("""
     <style>
@@ -157,7 +156,7 @@ st.markdown("""
 """, unsafe_allow_html=True)
 
 # -----------------------------------------------------------------------------
-# 1. TOP NAVIGATION HEADER WITH FORM SEARCH (PREVENTS PAGE LIGHT-OUT/FLASHING)
+# 1. TOP NAVIGATION HEADER
 # -----------------------------------------------------------------------------
 nav_col1, nav_col2, nav_col3 = st.columns([1.5, 3, 1.8])
 
@@ -166,37 +165,7 @@ with nav_col1:
     st.caption("Building Intelligence for Safer Communities")
 
 with nav_col2:
-    with st.form(key="search_form", clear_on_submit=False):
-        f_col1, f_col2 = st.columns([4, 1])
-        with f_col1:
-            search_query = st.text_input(
-                "Search Location",
-                placeholder="🔍 Type location in UAE (e.g. DIAC, Sharjah University, Burj Khalifa)...",
-                label_visibility="collapsed"
-            )
-        with f_col2:
-            submit_search = st.form_submit_button("Search 📍", use_container_width=True)
-
-    if submit_search and search_query.strip():
-        try:
-            target_query = search_query if "uae" in search_query.lower() else f"{search_query}, UAE"
-            loc_result = geocode(target_query)
-            if loc_result:
-                st.session_state.map_center = [loc_result.latitude, loc_result.longitude]
-                raw_address = loc_result.address
-                address_parts = [p.strip() for p in raw_address.split(",")]
-                
-                st.session_state.location_data = {
-                    "display_name": address_parts[0],
-                    "full_address": raw_address,
-                    "city": address_parts[-3] if len(address_parts) >= 3 else "UAE",
-                    "country": address_parts[-1]
-                }
-                st.rerun()
-            else:
-                st.toast("⚠️ Location not found in UAE. Try a more specific landmark name.")
-        except Exception as e:
-            st.toast(f"Geocoding Error: {e}")
+    st.caption("🔍 **Interactive GPS Navigation System Active** (Use search bar inside the map workspace below)")
 
 with nav_col3:
     c_help, c_notif, c_user = st.columns([1, 1.2, 1.8])
@@ -217,39 +186,44 @@ with nav_col3:
 st.divider()
 
 # -----------------------------------------------------------------------------
-# 2. MAIN DASHBOARD GRID
+# 2. ISOLATED FRAGMENT FOR MAP & ADDRESS UPDATE (PREVENTS FULL PAGE WHITEOUT)
 # -----------------------------------------------------------------------------
-left_col, center_col, right_col = st.columns([1.2, 3, 1.4])
+@st.fragment
+def render_map_and_search_area():
+    # SEARCH BAR INSIDE FRAGMENT
+    with st.form(key="map_search_form", clear_on_submit=False):
+        s_col1, s_col2 = st.columns([4, 1])
+        with s_col1:
+            search_query = st.text_input(
+                "Search Location",
+                placeholder="🔍 Type location in UAE (e.g. DIAC, Sharjah University, Burj Khalifa)...",
+                label_visibility="collapsed"
+            )
+        with s_col2:
+            submit_search = st.form_submit_button("Search 📍", use_container_width=True)
 
-# --- LEFT SIDEBAR: CATEGORIES ---
-with left_col:
-    st.markdown(f"""
-        <div class="card-box" style="background-color: #FFFBEB; border-color: #FCD34D;">
-            <b>🏢 Monitored Location</b><br>
-            <small style="color: #4B5563;">{st.session_state.location_data['display_name']}</small>
-        </div>
-    """, unsafe_allow_html=True)
-    
-    categories = [
-        ("💧 Water Management", "Green"),
-        ("⚡ Electricity", "Yellow"),
-        ("🏠 Roof Management", "Red"),
-        ("🏗️ Structural Stability", "Green"),
-        ("🌧️ Weather Related", "Yellow"),
-        ("🧱 Exterior Walls", "Yellow"),
-        ("🚰 Drainage Systems", "Red"),
-        ("🚪 Interior", "Green"),
-        ("🔒 Security", "Green")
-    ]
-    
-    for cat_name, status in categories:
-        dot = "🟢" if status == "Green" else "🟡" if status == "Yellow" else "🔴"
-        if st.button(f"{cat_name} {dot}", key=f"cat_{cat_name}", use_container_width=True):
-            show_aspect_modal(cat_name, status)
+    if submit_search and search_query.strip():
+        try:
+            target_query = search_query if "uae" in search_query.lower() else f"{search_query}, UAE"
+            loc_result = geocode(target_query)
+            if loc_result:
+                st.session_state.map_center = [loc_result.latitude, loc_result.longitude]
+                raw_address = loc_result.address
+                address_parts = [p.strip() for p in raw_address.split(",")]
+                
+                st.session_state.location_data = {
+                    "display_name": address_parts[0],
+                    "full_address": raw_address,
+                    "city": address_parts[-3] if len(address_parts) >= 3 else "UAE",
+                    "country": address_parts[-1]
+                }
+                st.rerun(scope="fragment")
+            else:
+                st.toast("⚠️ Location not found in UAE. Try a specific landmark.")
+        except Exception as e:
+            st.toast(f"Geocoding Error: {e}")
 
-# --- CENTER CANVAS: DYNAMIC LOCATION DISPLAY & MAP INTERACTION ---
-with center_col:
-    # ACTIVATED REAL-TIME LOCATION INFORMATION CARD (REPLACED BUILDING A17)
+    # DYNAMIC ADDRESS DISPLAY
     st.markdown(f"""
         <div class="card-box">
             <div style="display: flex; justify-content: space-between; align-items: flex-start;">
@@ -276,7 +250,7 @@ with center_col:
     with v2: st.button("Map View", use_container_width=True)
     with v3: st.button("Street View", use_container_width=True)
 
-    # MAP GENERATION WITH INTERACTIVE CLICKING
+    # RENDER INTERACTIVE MAP
     m = folium.Map(
         location=st.session_state.map_center,
         zoom_start=15,
@@ -286,23 +260,23 @@ with center_col:
     folium.Marker(
         location=st.session_state.map_center,
         popup=st.session_state.location_data['display_name'],
-        tooltip="Selected Location — Click anywhere on the map to re-pin",
+        tooltip="Click anywhere to pan marker",
         icon=folium.Icon(color="red", icon="info-sign")
     ).add_to(m)
 
     map_data = st_folium(
-        m, 
-        width="100%", 
-        height=380, 
+        m,
+        key=f"map_{st.session_state.map_center[0]}_{st.session_state.map_center[1]}",
+        width="100%",
+        height=380,
         returned_objects=["last_clicked"]
     )
 
-    # MAP CLICK REVERSE GEOCODING LOGIC
+    # MAP CLICK REVERSE GEOCODING
     if map_data and map_data.get("last_clicked"):
         clicked_lat = map_data["last_clicked"]["lat"]
         clicked_lon = map_data["last_clicked"]["lng"]
         
-        # Trigger update only if new location was clicked
         if [round(clicked_lat, 4), round(clicked_lon, 4)] != [round(st.session_state.map_center[0], 4), round(st.session_state.map_center[1], 4)]:
             st.session_state.map_center = [clicked_lat, clicked_lon]
             try:
@@ -316,21 +290,49 @@ with center_col:
                         "city": parts[-3] if len(parts) >= 3 else "UAE",
                         "country": parts[-1]
                     }
-                else:
-                    st.session_state.location_data = {
-                        "display_name": f"Pin Point ({clicked_lat:.4f}, {clicked_lon:.4f})",
-                        "full_address": f"Coordinates: {clicked_lat:.5f}, {clicked_lon:.5f}",
-                        "city": "UAE",
-                        "country": "United Arab Emirates"
-                    }
             except Exception:
                 st.session_state.location_data = {
-                    "display_name": "Custom GPS Location",
+                    "display_name": "Custom GPS Pin",
                     "full_address": f"Lat: {clicked_lat:.5f}, Lon: {clicked_lon:.5f}",
                     "city": "UAE",
                     "country": "United Arab Emirates"
                 }
-            st.rerun()
+            st.rerun(scope="fragment")
+
+# -----------------------------------------------------------------------------
+# 3. MAIN DASHBOARD GRID
+# -----------------------------------------------------------------------------
+left_col, center_col, right_col = st.columns([1.2, 3, 1.4])
+
+# --- LEFT SIDEBAR ---
+with left_col:
+    st.markdown(f"""
+        <div class="card-box" style="background-color: #FFFBEB; border-color: #FCD34D;">
+            <b>🏢 Monitored Location</b><br>
+            <small style="color: #4B5563;">{st.session_state.location_data['display_name']}</small>
+        </div>
+    """, unsafe_allow_html=True)
+    
+    categories = [
+        ("💧 Water Management", "Green"),
+        ("⚡ Electricity", "Yellow"),
+        ("🏠 Roof Management", "Red"),
+        ("🏗️ Structural Stability", "Green"),
+        ("🌧️ Weather Related", "Yellow"),
+        ("🧱 Exterior Walls", "Yellow"),
+        ("🚰 Drainage Systems", "Red"),
+        ("🚪 Interior", "Green"),
+        ("🔒 Security", "Green")
+    ]
+    
+    for cat_name, status in categories:
+        dot = "🟢" if status == "Green" else "🟡" if status == "Yellow" else "🔴"
+        if st.button(f"{cat_name} {dot}", key=f"cat_{cat_name}", use_container_width=True):
+            show_aspect_modal(cat_name, status)
+
+# --- CENTER CANVAS ---
+with center_col:
+    render_map_and_search_area()
 
     st.subheader("AI Diagnostics & Insights")
     i1, i2, i3, i4 = st.columns(4)
@@ -355,7 +357,7 @@ with center_col:
         if st.button("View Details →", key="vi_4"):
             show_aspect_modal("Exterior Walls", "Yellow")
 
-# --- RIGHT SIDEBAR: FLAGS, AI SUMMARY, FEEDBACK ---
+# --- RIGHT SIDEBAR ---
 with right_col:
     st.markdown("""
         <div class="flag-box">
@@ -424,7 +426,7 @@ with right_col:
     """, unsafe_allow_html=True)
 
 # -----------------------------------------------------------------------------
-# 3. BOTTOM CONTACTS BAR
+# 4. BOTTOM CONTACTS BAR
 # -----------------------------------------------------------------------------
 st.divider()
 st.subheader("Contact the Right Authority")
