@@ -9,7 +9,7 @@ st.set_page_config(page_title="RESILIA - Maintenance Dashboard", page_icon="🛡
 # -----------------------------------------------------------------------------
 # GPS & GEOCODING INITIALIZATION
 # -----------------------------------------------------------------------------
-geolocator = Nominatim(user_agent="resilia_interactive_app_v3")
+geolocator = Nominatim(user_agent="resilia_interactive_app_v4")
 geocode = RateLimiter(geolocator.geocode, min_delay_seconds=1)
 reverse = RateLimiter(geolocator.reverse, min_delay_seconds=1)
 
@@ -22,12 +22,36 @@ if "map_center" not in st.session_state:
 if "location_data" not in st.session_state:
     st.session_state.location_data = {
         "display_name": "Dubai International Academic City",
-        "full_address": "Dubai International Academic City, Dubai, United Arab Emirates",
+        "full_address": "Dubai International Academic City, Academic City, Dubai, United Arab Emirates",
         "city": "Dubai",
         "country": "United Arab Emirates"
     }
 
-# Handle navigation redirects
+# Authentic surrounding landmarks in the UAE (DIAC / Sharjah University City corridor)
+SURROUNDING_LANDMARKS = [
+    {
+        "name": "Dubai International Academic City (DIAC)",
+        "coords": [25.1212, 55.3881],
+        "address": "Academic City, Dubai, United Arab Emirates"
+    },
+    {
+        "name": "University City of Sharjah",
+        "coords": [25.2854, 55.4800],
+        "address": "University City Road, Muwaileh Commercial, Sharjah, United Arab Emirates"
+    },
+    {
+        "name": "American University of Sharjah (AUS)",
+        "coords": [25.3117, 55.4916],
+        "address": "University City, Sharjah, United Arab Emirates"
+    },
+    {
+        "name": "Dubai Silicon Oasis (DSO)",
+        "coords": [25.1264, 55.3802],
+        "address": "Sheikh Zayed Bin Hamdan Al Nahyan Street, Silicon Oasis, Dubai, United Arab Emirates"
+    }
+]
+
+# Handle page navigation query parameters
 if st.query_params.get("navigate") == "feedback":
     st.query_params.clear()
     try:
@@ -156,47 +180,21 @@ st.markdown("""
 """, unsafe_allow_html=True)
 
 # -----------------------------------------------------------------------------
-# 1. TOP NAVIGATION HEADER
+# 1. TOP NAVIGATION HEADER WITH CLEAN FUNCTIONAL SEARCH
 # -----------------------------------------------------------------------------
-nav_col1, nav_col2, nav_col3 = st.columns([1.5, 3, 1.8])
+nav_col1, nav_col2, nav_col3 = st.columns([1.5, 3.2, 1.8])
 
 with nav_col1:
     st.markdown("### 🛡️ **RESILIA**")
     st.caption("Building Intelligence for Safer Communities")
 
 with nav_col2:
-    st.caption("🔍 **Interactive GPS Navigation System Active** (Use search bar inside the map workspace below)")
-
-with nav_col3:
-    c_help, c_notif, c_user = st.columns([1, 1.2, 1.8])
-    with c_help:
-        if st.button("❓ Help"):
-            st.info("Help & Support documentation module.")
-            
-    with c_notif:
-        if st.button("🔔 Notifications (3)"):
-            try:
-                st.switch_page("pages/notifications.py")
-            except Exception:
-                st.switch_page("notifications.py")
-                
-    with c_user:
-        st.markdown("<div style='text-align: right;'><b>Admin User</b><br><small style='color: #6B7280;'>Authority</small></div>", unsafe_allow_html=True)
-
-st.divider()
-
-# -----------------------------------------------------------------------------
-# 2. ISOLATED FRAGMENT FOR MAP & ADDRESS UPDATE (PREVENTS FULL PAGE WHITEOUT)
-# -----------------------------------------------------------------------------
-@st.fragment
-def render_map_and_search_area():
-    # SEARCH BAR INSIDE FRAGMENT
-    with st.form(key="map_search_form", clear_on_submit=False):
+    with st.form(key="top_search_form", clear_on_submit=False):
         s_col1, s_col2 = st.columns([4, 1])
         with s_col1:
             search_query = st.text_input(
                 "Search Location",
-                placeholder="🔍 Type location in UAE (e.g. DIAC, Sharjah University, Burj Khalifa)...",
+                placeholder="🔍 e.g., University City Road, Sharjah, UAE",
                 label_visibility="collapsed"
             )
         with s_col2:
@@ -217,20 +215,43 @@ def render_map_and_search_area():
                     "city": address_parts[-3] if len(address_parts) >= 3 else "UAE",
                     "country": address_parts[-1]
                 }
-                st.rerun(scope="fragment")
+                st.rerun()
             else:
-                st.toast("⚠️ Location not found in UAE. Try a specific landmark.")
+                st.toast("⚠️ Location not found in UAE. Try entering a full address or landmark.")
         except Exception as e:
             st.toast(f"Geocoding Error: {e}")
 
-    # DYNAMIC ADDRESS DISPLAY
+with nav_col3:
+    c_help, c_notif, c_user = st.columns([1, 1.2, 1.8])
+    with c_help:
+        if st.button("❓ Help"):
+            st.info("Help & Support documentation module.")
+            
+    with c_notif:
+        if st.button("🔔 Notifications (3)"):
+            try:
+                st.switch_page("pages/notifications.py")
+            except Exception:
+                st.switch_page("notifications.py")
+                
+    with c_user:
+        st.markdown("<div style='text-align: right;'><b>Admin User</b><br><small style='color: #6B7280;'>Authority</small></div>", unsafe_allow_html=True)
+
+st.divider()
+
+# -----------------------------------------------------------------------------
+# 2. ISOLATED FRAGMENT FOR MAP & ADDRESS DISPLAY (PREVENTS WHITEOUT)
+# -----------------------------------------------------------------------------
+@st.fragment
+def render_map_and_address_card():
+    # ACTIVATED REAL-TIME LOCATION ADDRESS BOX
     st.markdown(f"""
         <div class="card-box">
             <div style="display: flex; justify-content: space-between; align-items: flex-start;">
                 <div>
                     <h2 style="margin: 0; color: #111827;">📍 {st.session_state.location_data['display_name']}</h2>
                     <p style="color: #059669; font-weight: 600; margin-top: 6px; font-size: 0.9rem;">
-                        Detailed Resolved Address:
+                        Verified Physical Address:
                     </p>
                     <p style="color: #374151; background-color: #F3F4F6; padding: 10px; border-radius: 6px; font-size: 0.88rem; margin-top: 2px;">
                         {st.session_state.location_data['full_address']}
@@ -250,53 +271,81 @@ def render_map_and_search_area():
     with v2: st.button("Map View", use_container_width=True)
     with v3: st.button("Street View", use_container_width=True)
 
-    # RENDER INTERACTIVE MAP
+    # MAP GENERATION WITH RED MARKERS FOR SURROUNDING LANDMARKS
     m = folium.Map(
         location=st.session_state.map_center,
-        zoom_start=15,
+        zoom_start=13,
         control_scale=True
     )
 
+    # Active target marker
     folium.Marker(
         location=st.session_state.map_center,
         popup=st.session_state.location_data['display_name'],
-        tooltip="Click anywhere to pan marker",
-        icon=folium.Icon(color="red", icon="info-sign")
+        tooltip="📍 Active Selected Point",
+        icon=folium.Icon(color="red", icon="star")
     ).add_to(m)
 
+    # Add surrounding red landmark pins
+    for lm in SURROUNDING_LANDMARKS:
+        folium.Marker(
+            location=lm["coords"],
+            popup=lm["name"],
+            tooltip=f"📍 Red Marker: {lm['name']} (Click to jump location)",
+            icon=folium.Icon(color="red", icon="info-sign")
+        ).add_to(m)
+
+    # Render interactive map component
     map_data = st_folium(
         m,
-        key=f"map_{st.session_state.map_center[0]}_{st.session_state.map_center[1]}",
+        key=f"folium_map_{st.session_state.map_center[0]:.4f}_{st.session_state.map_center[1]:.4f}",
         width="100%",
-        height=380,
+        height=390,
         returned_objects=["last_clicked"]
     )
 
-    # MAP CLICK REVERSE GEOCODING
+    # INTERACTIVE MAP & MARKER CLICK REVERSE GEOCODING
     if map_data and map_data.get("last_clicked"):
         clicked_lat = map_data["last_clicked"]["lat"]
         clicked_lon = map_data["last_clicked"]["lng"]
         
+        # Check if new coordinates were clicked
         if [round(clicked_lat, 4), round(clicked_lon, 4)] != [round(st.session_state.map_center[0], 4), round(st.session_state.map_center[1], 4)]:
             st.session_state.map_center = [clicked_lat, clicked_lon]
-            try:
-                rev_loc = reverse(f"{clicked_lat}, {clicked_lon}")
-                if rev_loc:
-                    raw_addr = rev_loc.address
-                    parts = [p.strip() for p in raw_addr.split(",")]
-                    st.session_state.location_data = {
-                        "display_name": parts[0] if parts else "Selected Location",
-                        "full_address": raw_addr,
-                        "city": parts[-3] if len(parts) >= 3 else "UAE",
-                        "country": parts[-1]
-                    }
-            except Exception:
+            
+            # Check if clicked point matches a landmark pin
+            matched_lm = None
+            for lm in SURROUNDING_LANDMARKS:
+                if abs(lm["coords"][0] - clicked_lat) < 0.005 and abs(lm["coords"][1] - clicked_lon) < 0.005:
+                    matched_lm = lm
+                    break
+
+            if matched_lm:
                 st.session_state.location_data = {
-                    "display_name": "Custom GPS Pin",
-                    "full_address": f"Lat: {clicked_lat:.5f}, Lon: {clicked_lon:.5f}",
-                    "city": "UAE",
+                    "display_name": matched_lm["name"],
+                    "full_address": matched_lm["address"],
+                    "city": "Sharjah / Dubai Corridor",
                     "country": "United Arab Emirates"
                 }
+            else:
+                try:
+                    rev_loc = reverse(f"{clicked_lat}, {clicked_lon}")
+                    if rev_loc:
+                        raw_addr = rev_loc.address
+                        parts = [p.strip() for p in raw_addr.split(",")]
+                        st.session_state.location_data = {
+                            "display_name": parts[0] if parts else "Selected Location",
+                            "full_address": raw_addr,
+                            "city": parts[-3] if len(parts) >= 3 else "UAE",
+                            "country": parts[-1]
+                        }
+                except Exception:
+                    st.session_state.location_data = {
+                        "display_name": f"Pin Point ({clicked_lat:.4f}, {clicked_lon:.4f})",
+                        "full_address": f"GPS Coordinates: {clicked_lat:.5f}, {clicked_lon:.5f}",
+                        "city": "UAE",
+                        "country": "United Arab Emirates"
+                    }
             st.rerun(scope="fragment")
 
 # -----------------------------------------------------------------------------
@@ -332,7 +381,7 @@ with left_col:
 
 # --- CENTER CANVAS ---
 with center_col:
-    render_map_and_search_area()
+    render_map_and_address_card()
 
     st.subheader("AI Diagnostics & Insights")
     i1, i2, i3, i4 = st.columns(4)
