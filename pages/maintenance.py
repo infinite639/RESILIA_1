@@ -9,45 +9,46 @@ st.set_page_config(page_title="RESILIA - Maintenance Dashboard", page_icon="🛡
 # -----------------------------------------------------------------------------
 # GPS & GEOCODING INITIALIZATION
 # -----------------------------------------------------------------------------
-geolocator = Nominatim(user_agent="resilia_interactive_app_v4")
+geolocator = Nominatim(user_agent="resilia_interactive_diac_app_v5")
 geocode = RateLimiter(geolocator.geocode, min_delay_seconds=1)
 reverse = RateLimiter(geolocator.reverse, min_delay_seconds=1)
 
-DEFAULT_LAT = 25.1212
-DEFAULT_LON = 55.3881
+# Central Coordinates for Dubai International Academic City (DIAC)
+DIAC_CENTER_LAT = 25.1212
+DIAC_CENTER_LON = 55.3881
 
 if "map_center" not in st.session_state:
-    st.session_state.map_center = [DEFAULT_LAT, DEFAULT_LON]
+    st.session_state.map_center = [DIAC_CENTER_LAT, DIAC_CENTER_LON]
 
 if "location_data" not in st.session_state:
     st.session_state.location_data = {
-        "display_name": "Dubai International Academic City",
+        "display_name": "DIAC Main Campus Hub",
         "full_address": "Dubai International Academic City, Academic City, Dubai, United Arab Emirates",
         "city": "Dubai",
         "country": "United Arab Emirates"
     }
 
-# Authentic surrounding landmarks in the UAE (DIAC / Sharjah University City corridor)
-SURROUNDING_LANDMARKS = [
+# Authentic landmarks strictly confined to Dubai International Academic City (DIAC)
+DIAC_LANDMARKS = [
     {
-        "name": "Dubai International Academic City (DIAC)",
+        "name": "DIAC Main Central Hub",
         "coords": [25.1212, 55.3881],
-        "address": "Academic City, Dubai, United Arab Emirates"
+        "address": "Academic City Road, DIAC Central Square, Dubai, UAE"
     },
     {
-        "name": "University City of Sharjah",
-        "coords": [25.2854, 55.4800],
-        "address": "University City Road, Muwaileh Commercial, Sharjah, United Arab Emirates"
+        "name": "DIAC Academic Block 11 Area",
+        "coords": [25.1235, 55.3895],
+        "address": "Block 11, Dubai International Academic City, Dubai, UAE"
     },
     {
-        "name": "American University of Sharjah (AUS)",
-        "coords": [25.3117, 55.4916],
-        "address": "University City, Sharjah, United Arab Emirates"
+        "name": "DIAC Student Housing & Amenities Zone",
+        "coords": [25.1188, 55.3862],
+        "address": "Student Accommodation Complex, DIAC, Dubai, UAE"
     },
     {
-        "name": "Dubai Silicon Oasis (DSO)",
-        "coords": [25.1264, 55.3802],
-        "address": "Sheikh Zayed Bin Hamdan Al Nahyan Street, Silicon Oasis, Dubai, United Arab Emirates"
+        "name": "DIAC Park & Sports Complex",
+        "coords": [25.1250, 55.3850],
+        "address": "DIAC Park Drive, Academic City, Dubai, UAE"
     }
 ]
 
@@ -194,7 +195,7 @@ with nav_col2:
         with s_col1:
             search_query = st.text_input(
                 "Search Location",
-                placeholder="🔍 e.g., University City Road, Sharjah, UAE",
+                placeholder="🔍 e.g., Block 11, Academic City, Dubai, UAE",
                 label_visibility="collapsed"
             )
         with s_col2:
@@ -202,7 +203,7 @@ with nav_col2:
 
     if submit_search and search_query.strip():
         try:
-            target_query = search_query if "uae" in search_query.lower() else f"{search_query}, UAE"
+            target_query = search_query if "academic city" in search_query.lower() or "dubai" in search_query.lower() else f"{search_query}, Academic City, Dubai, UAE"
             loc_result = geocode(target_query)
             if loc_result:
                 st.session_state.map_center = [loc_result.latitude, loc_result.longitude]
@@ -212,12 +213,12 @@ with nav_col2:
                 st.session_state.location_data = {
                     "display_name": address_parts[0],
                     "full_address": raw_address,
-                    "city": address_parts[-3] if len(address_parts) >= 3 else "UAE",
-                    "country": address_parts[-1]
+                    "city": "Academic City, Dubai",
+                    "country": "United Arab Emirates"
                 }
                 st.rerun()
             else:
-                st.toast("⚠️ Location not found in UAE. Try entering a full address or landmark.")
+                st.toast("⚠️ Location not found. Try entering a specific DIAC block or address.")
         except Exception as e:
             st.toast(f"Geocoding Error: {e}")
 
@@ -244,7 +245,7 @@ st.divider()
 # -----------------------------------------------------------------------------
 @st.fragment
 def render_map_and_address_card():
-    # ACTIVATED REAL-TIME LOCATION ADDRESS BOX
+    # REAL-TIME LOCATION ADDRESS DISPLAY BOX
     st.markdown(f"""
         <div class="card-box">
             <div style="display: flex; justify-content: space-between; align-items: flex-start;">
@@ -261,7 +262,7 @@ def render_map_and_address_card():
             <div style="display: flex; gap: 20px; font-size: 0.85rem; color: #4B5563; margin-top: 10px;">
                 <span><b>Latitude:</b> {st.session_state.map_center[0]:.5f}</span>
                 <span><b>Longitude:</b> {st.session_state.map_center[1]:.5f}</span>
-                <span><b>Region:</b> {st.session_state.location_data['city']}</span>
+                <span><b>Zone:</b> DIAC, Dubai</span>
             </div>
         </div>
     """, unsafe_allow_html=True)
@@ -271,14 +272,14 @@ def render_map_and_address_card():
     with v2: st.button("Map View", use_container_width=True)
     with v3: st.button("Street View", use_container_width=True)
 
-    # MAP GENERATION WITH RED MARKERS FOR SURROUNDING LANDMARKS
+    # MAP GENERATION CENTERING DIAC WITH Surrounding DIAC Markers
     m = folium.Map(
         location=st.session_state.map_center,
-        zoom_start=13,
+        zoom_start=16,
         control_scale=True
     )
 
-    # Active target marker
+    # Active selected point marker
     folium.Marker(
         location=st.session_state.map_center,
         popup=st.session_state.location_data['display_name'],
@@ -286,37 +287,37 @@ def render_map_and_address_card():
         icon=folium.Icon(color="red", icon="star")
     ).add_to(m)
 
-    # Add surrounding red landmark pins
-    for lm in SURROUNDING_LANDMARKS:
+    # Add nearby DIAC red landmark pins
+    for lm in DIAC_LANDMARKS:
         folium.Marker(
             location=lm["coords"],
             popup=lm["name"],
-            tooltip=f"📍 Red Marker: {lm['name']} (Click to jump location)",
+            tooltip=f"📍 Red Marker: {lm['name']} (Click to jump)",
             icon=folium.Icon(color="red", icon="info-sign")
         ).add_to(m)
 
     # Render interactive map component
     map_data = st_folium(
         m,
-        key=f"folium_map_{st.session_state.map_center[0]:.4f}_{st.session_state.map_center[1]:.4f}",
+        key=f"diac_map_{st.session_state.map_center[0]:.4f}_{st.session_state.map_center[1]:.4f}",
         width="100%",
         height=390,
         returned_objects=["last_clicked"]
     )
 
-    # INTERACTIVE MAP & MARKER CLICK REVERSE GEOCODING
+    # MAP CLICK & MARKER SELECTION HANDLING
     if map_data and map_data.get("last_clicked"):
         clicked_lat = map_data["last_clicked"]["lat"]
         clicked_lon = map_data["last_clicked"]["lng"]
         
-        # Check if new coordinates were clicked
+        # Check if coordinates changed significantly
         if [round(clicked_lat, 4), round(clicked_lon, 4)] != [round(st.session_state.map_center[0], 4), round(st.session_state.map_center[1], 4)]:
             st.session_state.map_center = [clicked_lat, clicked_lon]
             
-            # Check if clicked point matches a landmark pin
+            # Check if clicked coordinate matches a DIAC preset pin
             matched_lm = None
-            for lm in SURROUNDING_LANDMARKS:
-                if abs(lm["coords"][0] - clicked_lat) < 0.005 and abs(lm["coords"][1] - clicked_lon) < 0.005:
+            for lm in DIAC_LANDMARKS:
+                if abs(lm["coords"][0] - clicked_lat) < 0.002 and abs(lm["coords"][1] - clicked_lon) < 0.002:
                     matched_lm = lm
                     break
 
@@ -324,7 +325,7 @@ def render_map_and_address_card():
                 st.session_state.location_data = {
                     "display_name": matched_lm["name"],
                     "full_address": matched_lm["address"],
-                    "city": "Sharjah / Dubai Corridor",
+                    "city": "Academic City, Dubai",
                     "country": "United Arab Emirates"
                 }
             else:
@@ -334,16 +335,16 @@ def render_map_and_address_card():
                         raw_addr = rev_loc.address
                         parts = [p.strip() for p in raw_addr.split(",")]
                         st.session_state.location_data = {
-                            "display_name": parts[0] if parts else "Selected Location",
+                            "display_name": parts[0] if parts else "DIAC Location Pin",
                             "full_address": raw_addr,
-                            "city": parts[-3] if len(parts) >= 3 else "UAE",
-                            "country": parts[-1]
+                            "city": "Academic City, Dubai",
+                            "country": "United Arab Emirates"
                         }
                 except Exception:
                     st.session_state.location_data = {
-                        "display_name": f"Pin Point ({clicked_lat:.4f}, {clicked_lon:.4f})",
-                        "full_address": f"GPS Coordinates: {clicked_lat:.5f}, {clicked_lon:.5f}",
-                        "city": "UAE",
+                        "display_name": f"DIAC Point ({clicked_lat:.4f}, {clicked_lon:.4f})",
+                        "full_address": f"DIAC Coordinates: {clicked_lat:.5f}, {clicked_lon:.5f}, Dubai, UAE",
+                        "city": "Academic City, Dubai",
                         "country": "United Arab Emirates"
                     }
             st.rerun(scope="fragment")
