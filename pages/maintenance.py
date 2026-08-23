@@ -1,6 +1,24 @@
 import streamlit as st
+import folium
+from streamlit_folium import st_folium
+from geopy.geocoders import Nominatim
+from geopy.extra.rate_limiter import RateLimiter
 
 st.set_page_config(page_title="RESILIA - Maintenance Dashboard", page_icon="🛡️", layout="wide")
+
+# -----------------------------------------------------------------------------
+# GPS & GEOCODING INITIALIZATION (DEFAULT: DUBAI/SHARJAH METRO AREA)
+# -----------------------------------------------------------------------------
+geolocator = Nominatim(user_agent="resilia_maintenance_app")
+geocode = RateLimiter(geolocator.geocode, min_delay_seconds=1)
+
+DEFAULT_LAT = 25.1972
+DEFAULT_LON = 55.2744
+
+if "map_center" not in st.session_state:
+    st.session_state.map_center = [DEFAULT_LAT, DEFAULT_LON]
+if "selected_address" not in st.session_state:
+    st.session_state.selected_address = "Dubai International Academic City, Dubai, UAE"
 
 # Query parameter handling for the Report Issue button click
 if st.query_params.get("navigate") == "feedback":
@@ -46,20 +64,6 @@ st.markdown("""
             margin-bottom: 12px;
         }
 
-        .map-placeholder {
-            width: 100%;
-            height: 380px;
-            background-color: #E2E8F0;
-            border: 2px dashed #94A3B8;
-            border-radius: 8px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            color: #475569;
-            font-weight: 600;
-            margin-bottom: 15px;
-        }
-
         .flag-box {
             background-color: #FEF2F2;
             border: 1px solid #FCA5A5;
@@ -86,20 +90,12 @@ st.markdown("""
             font-weight: 600;
         }
 
-        /* -------------------------------------------------------------------------
-           ANNOTATION 1: BORDERLESS FEEDBACK CONTAINER
-           Hides Streamlit's default container outline while matching background color.
-           ------------------------------------------------------------------------- */
         div[data-testid="stVerticalBlockBorderWrapper"] {
             border: none !important;
             box-shadow: none !important;
             background-color: #FAF6F0 !important;
         }
 
-        /* -------------------------------------------------------------------------
-           ANNOTATION 2: FULLY EXPANDED YELLOW CARD WRAPPER
-           Extends heightwise to completely enclose title, subtext, and action button.
-           ------------------------------------------------------------------------- */
         .yellow-card-container {
             background-color: #FEF3C7;
             border: 1px solid #FDE68A;
@@ -126,10 +122,6 @@ st.markdown("""
             margin-bottom: 14px;
         }
 
-        /* -------------------------------------------------------------------------
-           ANNOTATION 3: CLEAN EMBEDDED ACTION BUTTON (NO DARK BORDERS)
-           Strips out gray/black borders, focus rings, and outlines entirely.
-           ------------------------------------------------------------------------- */
         .yellow-card-button {
             display: block;
             width: 100%;
@@ -172,12 +164,25 @@ with nav_col1:
     st.markdown("### 🛡️ **RESILIA**")
     st.caption("Building Intelligence for Safer Communities")
 
+# Search Bar configured with Geocoding lookup for UAE Locations
 with nav_col2:
     search_input = st.text_input(
-        "Search",
-        placeholder="🔍 Search address or building...",
-        label_visibility="collapsed"
+        "Search Location",
+        placeholder="🔍 Search address or building (e.g. DIAC, Dubai, Sharjah...)",
+        label_visibility="collapsed",
+        key="main_search_input"
     )
+    if search_input:
+        try:
+            query_with_country = f"{search_input}, UAE"
+            location = geocode(query_with_country)
+            if location:
+                st.session_state.map_center = [location.latitude, location.longitude]
+                st.session_state.selected_address = location.address
+            else:
+                st.warning("Location not found in UAE. Try a broader landmark name.")
+        except Exception:
+            pass
 
 with nav_col3:
     c_help, c_notif, c_user = st.columns([1, 1.2, 1.8])
@@ -188,9 +193,9 @@ with nav_col3:
     with c_notif:
         if st.button("🔔 Notifications (3)"):
             try:
-                st.switch_page("pages/feedback.py")
+                st.switch_page("pages/notifications.py")
             except Exception:
-                st.switch_page("feedback.py")
+                st.switch_page("notifications.py")
                 
     with c_user:
         st.markdown("<div style='text-align: right;'><b>Admin User</b><br><small style='color: #6B7280;'>Authority</small></div>", unsafe_allow_html=True)
@@ -228,9 +233,9 @@ with left_col:
         if st.button(f"{cat_name} {dot}", key=f"cat_{cat_name}", use_container_width=True):
             show_aspect_modal(cat_name, status)
 
-# --- CENTER CANVAS: BUILDING DETAILS & MAP PLACEHOLDER ---
+# --- CENTER CANVAS: BUILDING DETAILS & GPS FOLIUM MAP ---
 with center_col:
-    st.markdown("""
+    st.markdown(f"""
         <div class="card-box">
             <div style="display: flex; justify-content: space-between; align-items: center;">
                 <h2>Building A17 ⭐</h2>
@@ -241,7 +246,7 @@ with center_col:
                     <span><b>Floors:</b> 5</span>
                 </div>
             </div>
-            <p style="color: #6B7280; margin-top: 5px;">Dubai International Academic City, Dubai, UAE</p>
+            <p style="color: #6B7280; margin-top: 5px;">📍 {st.session_state.selected_address}</p>
         </div>
     """, unsafe_allow_html=True)
 
@@ -250,11 +255,23 @@ with center_col:
     with v2: st.button("Map View", use_container_width=True)
     with v3: st.button("Street View", use_container_width=True)
 
-    st.markdown("""
-        <div class="map-placeholder">
-            [ Map View Area Placeholder — Ready for GPS Map Integration ]
-        </div>
-    """, unsafe_allow_html=True)
+    # --- FOLIUM INTERACTIVE GPS MAP INTEGRATION ---
+    m = folium.Map(
+        location=st.session_state.map_center,
+        zoom_start=14,
+        control_scale=True
+    )
+
+    folium.Marker(
+        location=st.session_state.map_center,
+        popup=st.session_state.selected_address,
+        tooltip="Selected Building / GPS Pin",
+        icon=folium.Icon(color="red", icon="info-sign")
+    ).add_to(m)
+
+    st_folium(m, width="100%", height=350, returned_objects=[])
+
+    st.caption(f"🌐 **GPS Coordinates:** Lat `{st.session_state.map_center[0]:.4f}`, Lon `{st.session_state.map_center[1]:.4f}`")
 
     st.subheader("AI Insights")
     i1, i2, i3, i4 = st.columns(4)
@@ -339,10 +356,6 @@ with right_col:
                 </div>
             """, unsafe_allow_html=True)
 
-    # -------------------------------------------------------------------------
-    # ANNOTATION 4: SINGLE CONSOLIDATED HTML CARD CONTAINING BUTTON & TEXT
-    # Guarantees the yellow background fully encompasses title, subtext, and button.
-    # -------------------------------------------------------------------------
     st.markdown("""
         <div class="yellow-card-container">
             <span class="yellow-card-title">📝 REPORT AN ISSUE</span>
