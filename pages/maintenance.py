@@ -10,7 +10,7 @@ from sklearn.ensemble import RandomForestClassifier
 from sklearn.tree import DecisionTreeRegressor
 from transformers import pipeline
 
-st.set_page_config(page_title="RESILIA - AI Building Intelligence", page_icon="🛡️", layout="wide")
+st.set_page_config(page_title="RESILIA - AI Building Intelligence", page_icon="image_1.png", layout="wide")
 
 # -----------------------------------------------------------------------------
 # 0. IN-MEMORY AI MODEL TRAINERS & PIPELINES (Scikit-Learn & HuggingFace)
