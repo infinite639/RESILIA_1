@@ -368,7 +368,7 @@ st.divider()
 def render_map_and_address_card():
     st.markdown(f"""
         <div class="card-box">
-            <h2 style="margin: 0; color: #111827;">📍 {st.session_state.location_data['display_name']}</h2>
+            <h2 style="margin: 0; color: #111827;"> {st.session_state.location_data['display_name']}</h2>
             <p style="color: #059669; font-weight: 600; margin-top: 6px; font-size: 0.9rem;">Verified Address:</p>
             <p style="color: #374151; background-color: #F3F4F6; padding: 10px; border-radius: 6px; font-size: 0.88rem;">{st.session_state.location_data['full_address']}</p>
             <div style="display: flex; gap: 20px; font-size: 0.85rem; color: #4B5563;">
@@ -449,15 +449,15 @@ with left_col:
     """, unsafe_allow_html=True)
     
     categories = [
-        ("💧 Water Management", "Green"),
-        ("⚡ Electricity", "Yellow"),
-        ("🏠 Roof Management", "Red"),
-        ("🏗️ Structural Stability", "Green"),
-        ("🌧️ Weather Related", "Yellow"),
-        ("🧱 Exterior Walls", "Yellow"),
-        ("🚰 Drainage Systems", "Red"),
-        ("🚪 Interior", "Green"),
-        ("🔒 Security", "Green")
+        ("Water Management", "Green"),
+        ("Electricity", "Yellow"),
+        ("Roof Management", "Red"),
+        ("Structural Stability", "Green"),
+        ("Weather Related", "Yellow"),
+        ("Exterior Walls", "Yellow"),
+        ("Drainage Systems", "Red"),
+        ("Interior", "Green"),
+        ("Security", "Green")
     ]
     
     for cat_name, status in categories:
@@ -490,7 +490,7 @@ with center_col:
 with right_col:
     st.markdown("""
         <div class="flag-box">
-            <h4 style="margin: 0; color: #991B1B;">⚠️ Telemetry Data Inadequacy Flag</h4>
+            <h4 style="margin: 0; color: #991B1B;">Telemetry Data Inadequacy Flag</h4>
             <small style="font-weight:600;">Confidence Penalty Active</small>
             <hr style="margin: 8px 0; border: 0; border-top: 1px solid #FCA5A5;">
             <p style="font-size: 0.8rem; margin: 0; line-height: 1.3;">
@@ -507,7 +507,7 @@ with right_col:
 
     st.markdown(f"""
         <div class="card-box" style="border-left: 4px solid #2563EB;">
-            <h4 style="margin:0 0 8px 0; color: #1E40AF;">📊 Site Telemetry AI Summary</h4>
+            <h4 style="margin:0 0 8px 0; color: #1E40AF;">Site Telemetry AI Summary</h4>
             <p style="font-size:0.75rem; color: #6B7280; margin-bottom:10px;">Aggregated live model predictions for: <b>{curr_addr}</b></p>
             <ul style="padding-left: 15px; font-size: 0.8rem; margin: 0; color: #374151;">
                 <li><b>Water ($R^2={water_res['r2_score']}$):</b> Est. Demand {water_res['prediction']}</li>
