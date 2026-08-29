@@ -222,7 +222,7 @@ st.markdown("""
 header_cols = st.columns([1.5, 1, 1, 1.2, 1, 0.5])
 
 with header_cols[0]:
-    st.markdown("### 🛡️ **RESILIA**")
+    st.markdown("### **RESILIA**")
 
 with header_cols[1]:
     if st.button("🛠️ Maintenance", use_container_width=True):
