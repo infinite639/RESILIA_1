@@ -4,7 +4,7 @@ from datetime import datetime
 # Configure global browser tab title, icon, and wide page layout
 st.set_page_config(
     page_title="RESILIA - Give Feedback", 
-    page_icon="🛡️", 
+    page_icon="image_1.png", 
     layout="wide"
 )
 
@@ -146,7 +146,7 @@ nav_cols = st.columns([1.5, 1.2, 1.2, 1.4, 1.2, 0.5])
 
 # Brand button
 with nav_cols[0]:
-    if st.button("🛡️ RESILIA", key="nav_brand_home", use_container_width=True):
+    if st.button("RESILIA", key="nav_brand_home", use_container_width=True):
         try:
             st.switch_page("pages/homepage.py")
         except Exception:
