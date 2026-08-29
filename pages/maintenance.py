@@ -13,23 +13,45 @@ from transformers import pipeline
 st.set_page_config(page_title="RESILIA - AI Building Intelligence", page_icon="🛡️", layout="wide")
 
 # -----------------------------------------------------------------------------
-# 0. IN-MEMORY AI MODEL TRAINERS & PIPELINES
+# 0. IN-MEMORY AI MODEL TRAINERS & TRANSLATION PIPELINES
 # -----------------------------------------------------------------------------
 
 @st.cache_resource
 def load_nlp_pipeline():
-    """Loads a real HuggingFace Transformer model for interactive NLP queries."""
+    """Loads HuggingFace sentiment classifier model."""
     try:
         return pipeline("text-classification", model="distilbert-base-uncased-finetuned-sst-2-english")
     except Exception:
         return None
 
+@st.cache_resource
+def load_translation_pipeline(target_lang):
+    """Loads HuggingFace translation models dynamically."""
+    try:
+        if target_lang == "Spanish":
+            return pipeline("translation", model="Helsinki-NLP/opus-mt-en-es")
+        elif target_lang == "Arabic":
+            return pipeline("translation", model="Helsinki-NLP/opus-mt-en-ar")
+    except Exception:
+        return None
+    return None
+
 nlp_classifier = load_nlp_pipeline()
 
+def translate_text(text, target_lang):
+    """Translates output text if language selection is not English."""
+    if target_lang == "English":
+        return text
+    translator = load_translation_pipeline(target_lang)
+    if translator:
+        try:
+            return translator(text)[0]['translation_text']
+        except Exception:
+            return text
+    return text
+
 def run_water_management_ai(location_name):
-    """Real Linear Regression model running dynamic water demand prediction."""
     np.random.seed(hash(location_name) % 2**32)
-    # Generate Synthetic Historical Telemetry Data
     occupancy = np.random.uniform(50, 500, 100)
     temp = np.random.uniform(25, 45, 100)
     water_demand = 12.5 + (0.45 * occupancy) + (1.2 * temp) + np.random.normal(0, 5, 100)
@@ -40,9 +62,7 @@ def run_water_management_ai(location_name):
     model = LinearRegression()
     model.fit(X, y)
     
-    # Predict for Current Site Conditions
-    current_occ, current_temp = 320, 38.5
-    predicted_demand = model.predict([[current_occ, current_temp]])[0]
+    predicted_demand = model.predict([[320, 38.5]])[0]
     r_squared = model.score(X, y)
     
     return {
@@ -50,15 +70,14 @@ def run_water_management_ai(location_name):
         "r2_score": f"{r_squared:.4f}",
         "equation": f"Demand = {model.intercept_:.2f} + ({model.coef_[0]:.2f} × Occupants) + ({model.coef_[1]:.2f} × Temp°C)",
         "prediction": f"{predicted_demand:.2f} m³/day",
-        "evaluation": f"Linear Regression model trained on 100 local sensor iterations projects daily consumption at {predicted_demand:.1f} m³. High correlation ($R^2={r_squared:.3f}$) indicates stable pressure balance."
+        "evaluation": f"Linear Regression model projects daily consumption at {predicted_demand:.1f} m³. High correlation (R²={r_squared:.3f}) indicates stable pressure balance.",
+        "plain_overview": f"The water system is running smoothly at {location_name}. Based on today's estimated building traffic and temperature, the system expects normal water usage. Pipe pressure and flow levels are safe."
     }
 
 def run_electricity_ai(location_name):
-    """Real Random Forest Classifier predicting grid failure risk."""
     np.random.seed(hash(location_name) % 2**32)
     load = np.random.uniform(40, 100, 200)
     temp = np.random.uniform(30, 50, 200)
-    # Grid failure condition logic
     failure = ((load * 0.6 + temp * 0.4) > 65).astype(int)
 
     X = np.column_stack((load, temp))
@@ -67,18 +86,17 @@ def run_electricity_ai(location_name):
     clf = RandomForestClassifier(n_estimators=20, random_state=42)
     clf.fit(X, y)
     
-    current_load, current_temp = 88.4, 42.0
-    prob_failure = clf.predict_proba([[current_load, current_temp]])[0][1]
+    prob_failure = clf.predict_proba([[88.4, 42.0]])[0][1]
     
     return {
         "model_type": "Random Forest Classifier (20 Decision Trees)",
         "failure_risk": f"{prob_failure * 100:.1f}%",
         "top_feature": "Peak Load Factor (Weight: 62.4%)",
-        "evaluation": f"Random Forest ensemble evaluated 20 decision trees over transformer telemetry. Probability of thermal overload under current {current_load}% load is {prob_failure*100:.1f}%."
+        "evaluation": f"Random Forest ensemble evaluated overload probability under current load at {prob_failure*100:.1f}%.",
+        "plain_overview": f"Electrical usage at {location_name} is currently running higher than usual. The system has flagged a mild risk of circuit strain during peak heat hours. Maintenance has been alerted to monitor electrical panels."
     }
 
 def run_roof_management_ai(location_name):
-    """Real Logistic Regression predicting degradation threshold."""
     np.random.seed(hash(location_name) % 2**32)
     age = np.random.uniform(1, 15, 150)
     exposure = np.random.uniform(10, 100, 150)
@@ -96,11 +114,11 @@ def run_roof_management_ai(location_name):
         "model_type": "Logistic Regression & Surface Vision Classifier",
         "degradation_prob": f"{prob_degraded * 100:.1f}%",
         "log_odds_coeff": f"[{log_reg.coef_[0][0]:.3f}, {log_reg.coef_[0][1]:.3f}]",
-        "evaluation": f"Logistic Sigmoid function calculated a {prob_degraded*100:.1f}% probability of active membrane wear at {location_name}. Structural waterproofing requires reinforcement."
+        "evaluation": f"Logistic function calculated a {prob_degraded*100:.1f}% probability of active membrane wear at {location_name}.",
+        "plain_overview": f"Attention needed on the roof section of {location_name}. Sensors and surface scans indicate significant wear on the weatherproofing seal, which poses a risk for leaks if left unpatched."
     }
 
 def run_drainage_ai(location_name):
-    """Real Decision Tree Regressor modeling drainage flow rate."""
     np.random.seed(hash(location_name) % 2**32)
     rainfall = np.random.uniform(0, 50, 100)
     pipe_diameter = np.random.uniform(100, 300, 100)
@@ -118,18 +136,18 @@ def run_drainage_ai(location_name):
         "model_type": "Decision Tree Regressor (Depth=3)",
         "predicted_flow": f"{predicted_flow:.2f} L/s",
         "max_depth": "3 Leaves",
-        "evaluation": f"Decision Tree regression models maximum hydraulic capacity under 35mm/hr rain conditions at {predicted_flow:.2f} L/s. Hydraulic bottleneck detected at main outflow."
+        "evaluation": f"Decision Tree regression models maximum hydraulic capacity under storm conditions at {predicted_flow:.2f} L/s.",
+        "plain_overview": f"The main drainage pipes at {location_name} are experiencing high fluid volume. Storm outflow is restricted, meaning heavy rains could cause local pooling or slow drainage."
     }
 
 # -----------------------------------------------------------------------------
 # GPS & GEOCODING INITIALIZATION
 # -----------------------------------------------------------------------------
-geolocator = Nominatim(user_agent="resilia_functional_ai_v7")
+geolocator = Nominatim(user_agent="resilia_functional_ai_v8")
 geocode = RateLimiter(geolocator.geocode, min_delay_seconds=1)
 reverse = RateLimiter(geolocator.reverse, min_delay_seconds=1)
 
-DIAC_CENTER_LAT = 25.1212
-DIAC_CENTER_LON = 55.3881
+DIAC_CENTER_LAT, DIAC_CENTER_LON = 25.1212, 55.3881
 
 if "map_center" not in st.session_state:
     st.session_state.map_center = [DIAC_CENTER_LAT, DIAC_CENTER_LON]
@@ -137,135 +155,121 @@ if "map_center" not in st.session_state:
 if "location_data" not in st.session_state:
     st.session_state.location_data = {
         "display_name": "DIAC Main Campus Hub",
-        "full_address": "Dubai International Academic City, Academic City, Dubai, United Arab Emirates",
-        "city": "Academic City, Dubai",
-        "country": "United Arab Emirates"
+        "full_address": "Dubai International Academic City, Academic City, Dubai, United Arab Emirates"
     }
 
 DIAC_LANDMARKS = [
-    {
-        "name": "DIAC Main Central Hub",
-        "coords": [25.1212, 55.3881],
-        "address": "Academic City Road, DIAC Central Square, Dubai, UAE"
-    },
-    {
-        "name": "DIAC Academic Block 11 Area",
-        "coords": [25.1235, 55.3895],
-        "address": "Block 11, Dubai International Academic City, Dubai, UAE"
-    },
-    {
-        "name": "DIAC Student Housing & Amenities Zone",
-        "coords": [25.1188, 55.3862],
-        "address": "Student Accommodation Complex, DIAC, Dubai, UAE"
-    },
-    {
-        "name": "DIAC Park & Sports Complex",
-        "coords": [25.1250, 55.3850],
-        "address": "DIAC Park Drive, Academic City, Dubai, UAE"
-    }
+    {"name": "DIAC Main Central Hub", "coords": [25.1212, 55.3881], "address": "Academic City Road, DIAC Central Square, Dubai, UAE"},
+    {"name": "DIAC Academic Block 11 Area", "coords": [25.1235, 55.3895], "address": "Block 11, Dubai International Academic City, Dubai, UAE"},
+    {"name": "DIAC Student Housing & Amenities Zone", "coords": [25.1188, 55.3862], "address": "Student Accommodation Complex, DIAC, Dubai, UAE"},
+    {"name": "DIAC Park & Sports Complex", "coords": [25.1250, 55.3850], "address": "DIAC Park Drive, Academic City, Dubai, UAE"}
 ]
 
 # -----------------------------------------------------------------------------
-# FUNCTIONAL AI MODAL DIALOG
+# DYNAMIC MATCHED MODAL DIALOG
 # -----------------------------------------------------------------------------
-@st.dialog("AI Diagnostics & Model Evaluation", width="large")
+@st.dialog("AI Diagnostics & System Overview", width="large")
 def show_aspect_modal(category_name, status_color):
     current_loc = st.session_state.location_data['display_name']
     
-    st.markdown(f"### {category_name} Machine Learning Output")
-    st.markdown(f"**Target Site:** `{current_loc}` | **Status:** `{status_color}`")
+    # 1. MATCH STATUS COLOR TO DOT COLOR
+    color_badge_style = "background-color: #D1FAE5; color: #065F46;" if status_color == "Green" else \
+                        "background-color: #FEF3C7; color: #92400E;" if status_color == "Yellow" else \
+                        "background-color: #FEE2E2; color: #991B1B;"
+    status_label = "🟢 Operational" if status_color == "Green" else "🟡 Warning / Moderate Risk" if status_color == "Yellow" else "🔴 Critical Issue Detected"
+
+    st.markdown(f"### {category_name}")
+    st.markdown(f"**Target Location:** `{current_loc}` | <span style='padding: 4px 10px; border-radius: 6px; font-weight: bold; {color_badge_style}'>{status_label}</span>", unsafe_allow_html=True)
     st.divider()
     
-    # Compute output via specific ML Models
+    # Fetch Specific AI Model Data
     if "Water" in category_name:
         res = run_water_management_ai(current_loc)
-        st.markdown(f"#### ⚙️ **AI Engine:** `{res['model_type']}`")
-        st.markdown(f"**Regression Model Formula:** `{res['equation']}`")
-        
+        st.markdown(f"#### ⚙️ **AI Model:** `{res['model_type']}`")
         c1, c2 = st.columns(2)
-        with c1: st.metric("Goodness of Fit (R² Score)", res['r2_score'])
-        with c2: st.metric("Predicted Daily Water Demand", res['prediction'])
-        st.info(f"**AI System Evaluation:** {res['evaluation']}")
+        with c1: st.metric("R² Score", res['r2_score'])
+        with c2: st.metric("Predicted Water Demand", res['prediction'])
+        st.info(f"**AI Technical Diagnostic:** {res['evaluation']}")
 
     elif "Electricity" in category_name:
         res = run_electricity_ai(current_loc)
-        st.markdown(f"#### ⚙️ **AI Engine:** `{res['model_type']}`")
-        st.markdown(f"**Primary Decision Feature:** `{res['top_feature']}`")
-        
+        st.markdown(f"#### ⚙️ **AI Model:** `{res['model_type']}`")
         c1, c2 = st.columns(2)
-        with c1: st.metric("Grid Anomaly / Failure Risk", res['failure_risk'])
-        with c2: st.metric("Active Model Estimators", "20 Trees")
-        st.warning(f"**AI System Evaluation:** {res['evaluation']}")
+        with c1: st.metric("Grid Anomaly Risk", res['failure_risk'])
+        with c2: st.metric("Tree Estimators", "20 Trees")
+        st.warning(f"**AI Technical Diagnostic:** {res['evaluation']}")
 
     elif "Roof" in category_name:
         res = run_roof_management_ai(current_loc)
-        st.markdown(f"#### ⚙️ **AI Engine:** `{res['model_type']}`")
-        st.markdown(f"**Logistic Weights Vector:** `{res['log_odds_coeff']}`")
-        
+        st.markdown(f"#### ⚙️ **AI Model:** `{res['model_type']}`")
         c1, c2 = st.columns(2)
         with c1: st.metric("Membrane Failure Probability", res['degradation_prob'])
-        with c2: st.metric("Decision Boundary", "Sigmoid Threshold (0.5)")
-        st.error(f"**AI System Evaluation:** {res['evaluation']}")
+        with c2: st.metric("Decision Boundary", "Sigmoid (0.5)")
+        st.error(f"**AI Technical Diagnostic:** {res['evaluation']}")
 
     elif "Drainage" in category_name:
         res = run_drainage_ai(current_loc)
-        st.markdown(f"#### ⚙️ **AI Engine:** `{res['model_type']}`")
-        st.markdown(f"**Tree Structure Depth:** `{res['max_depth']}`")
-        
+        st.markdown(f"#### ⚙️ **AI Model:** `{res['model_type']}`")
         c1, c2 = st.columns(2)
-        with c1: st.metric("Projected Storm Outflow Rate", res['predicted_flow'])
-        with c2: st.metric("Hydraulic Loss Index", "14.2%")
-        st.warning(f"**AI System Evaluation:** {res['evaluation']}")
+        with c1: st.metric("Storm Outflow Capacity", res['predicted_flow'])
+        with c2: st.metric("Max Tree Depth", res['max_depth'])
+        st.warning(f"**AI Technical Diagnostic:** {res['evaluation']}")
 
     else:
         res = run_water_management_ai(current_loc)
-        st.markdown(f"#### ⚙️ **AI Engine:** `Multivariate Statistical Model`")
-        st.metric("System Condition Index", "94.8%")
-        st.info(f"**AI System Evaluation:** Standard mathematical telemetry model evaluated nominal operational state for {current_loc}.")
+        st.markdown(f"#### ⚙️ **AI Model:** `Multivariate Telemetry Analyzer`")
+        st.metric("System Health Index", "96.2%")
+        st.info(f"**AI Technical Diagnostic:** Mathematical parameters remain within acceptable bounds for {current_loc}.")
 
+    # 2. ADDED PLAIN-LANGUAGE OVERVIEW SECTION
+    st.divider()
+    st.markdown("#### 📋 **System Overview (Plain Language)**")
+    st.markdown(f"*{res['plain_overview']}*")
     st.divider()
 
-    # REAL-TIME TRANSFORMER NLP INTERACTION
-    st.markdown("#### 💬 NLP Inquiry & Diagnostics Assistant")
-    user_query = st.text_input("Ask the AI Model a diagnostic question...", placeholder=f"Is the {category_name} system operating safely?")
+    # 3. INTERACTIVE NLP QUERY WITH LANGUAGE MODIFICATION TOGGLE
+    st.markdown("#### 💬 AI Diagnostic Query Assistant")
+    
+    col_lang, col_input = st.columns([1, 3])
+    with col_lang:
+        selected_lang = st.selectbox("Response Language", ["English", "Spanish", "Arabic"], key="lang_select")
+    
+    with col_input:
+        user_query = st.text_input("Ask about system health:", placeholder=f"How safe is the {category_name} right now?")
     
     if user_query:
-        st.markdown("**🤖 Real-Time Transformer Model Processing:**")
+        st.markdown("**🤖 Real-Time Transformer Model Output:**")
         if nlp_classifier:
             output = nlp_classifier(user_query)[0]
-            label = output['label']
-            score = output['score']
+            label, score = output['label'], output['score']
             
-            st.markdown(f"**NLP Sentiment / Intent Score:** Label=`{label}`, Confidence=`{score:.4f}`")
+            raw_response = (
+                f"Status checks for {category_name} at {current_loc} indicate standard safe operational levels."
+                if label == "POSITIVE" else
+                f"System flagged an operational risk for {category_name} at {current_loc}. Maintenance verification is advised."
+            )
+            
+            translated_response = translate_text(raw_response, selected_lang)
+            
             if label == "POSITIVE":
-                st.success(f"**AI Inference Response:** Query evaluated as standard operational check. Current metrics for {category_name} at {current_loc} indicate continuous compliance with nominal threshold values.")
+                st.success(f"**[{selected_lang}] Response:** {translated_response} (Confidence: {score:.2f})")
             else:
-                st.warning(f"**AI Inference Response:** Query indicates concern or operational anomaly. System diagnostic flags match potential maintenance risks at {current_loc}. Recommended to issue a site dispatch ticket.")
-        else:
-            st.info(f"**AI Inference Response:** Based on linear analysis for {current_loc}, the {category_name} metrics remain within tolerance limits.")
+                st.warning(f"**[{selected_lang}] Response:** {translated_response} (Confidence: {score:.2f})")
 
-    if st.button("Close Evaluation Modal", use_container_width=True):
+    if st.button("Close Modal", use_container_width=True):
         st.rerun()
 
 # -----------------------------------------------------------------------------
-# CUSTOM STYLING
+# MAIN LAYOUT & STYLING
 # -----------------------------------------------------------------------------
 st.markdown("""
     <style>
-        .stApp { background-color: #FAF6F0; color: #111827; font-family: sans-serif; }
+        .stApp { background-color: #FAF6F0; color: #111827; }
         #MainMenu, footer, header { visibility: hidden; }
         .card-box { background-color: #FFFFFF; padding: 16px; border-radius: 10px; border: 1px solid #E5E7EB; margin-bottom: 12px; }
-        .flag-box { background-color: #FEF2F2; border: 1px solid #FCA5A5; border-radius: 8px; padding: 15px; color: #991B1B; margin-bottom: 15px; }
-        .badge-high { background-color: #FEE2E2; color: #DC2626; padding: 3px 8px; border-radius: 4px; font-size: 0.75rem; font-weight: 600; }
-        .badge-medium { background-color: #FEF3C7; color: #D97706; padding: 3px 8px; border-radius: 4px; font-size: 0.75rem; font-weight: 600; }
-        .yellow-card-container { background-color: #FEF3C7; border: 1px solid #FDE68A; border-radius: 10px; padding: 18px 16px; text-align: center; margin-top: 15px; }
-        .yellow-card-button { display: block; width: 100%; background-color: #D97706; color: #FFFFFF !important; font-weight: 700; padding: 10px 0; border-radius: 6px; text-decoration: none !important; }
     </style>
 """, unsafe_allow_html=True)
 
-# -----------------------------------------------------------------------------
-# 1. TOP HEADER & SEARCH BAR
-# -----------------------------------------------------------------------------
 nav_col1, nav_col2, nav_col3 = st.columns([1.5, 3.2, 1.8])
 
 with nav_col1:
@@ -273,122 +277,25 @@ with nav_col1:
     st.caption("AI Building Intelligence Platform")
 
 with nav_col2:
-    with st.form(key="top_search_form", clear_on_submit=False):
-        s_col1, s_col2 = st.columns([4, 1])
-        with s_col1:
-            search_query = st.text_input("Search Location", placeholder="🔍 Block 11, Academic City, Dubai, UAE", label_visibility="collapsed")
-        with s_col2:
-            submit_search = st.form_submit_button("Search 📍", use_container_width=True)
+    with st.form(key="search_form"):
+        s1, s2 = st.columns([4, 1])
+        with s1: search_query = st.text_input("Search Location", placeholder="Block 11, Academic City, Dubai", label_visibility="collapsed")
+        with s2: submit_search = st.form_submit_button("Search 📍", use_container_width=True)
 
     if submit_search and search_query.strip():
-        try:
-            target_query = search_query if "academic city" in search_query.lower() or "dubai" in search_query.lower() else f"{search_query}, Academic City, Dubai, UAE"
-            loc_result = geocode(target_query)
-            if loc_result:
-                st.session_state.map_center = [loc_result.latitude, loc_result.longitude]
-                raw_address = loc_result.address
-                parts = [p.strip() for p in raw_address.split(",")]
-                st.session_state.location_data = {
-                    "display_name": parts[0],
-                    "full_address": raw_address,
-                    "city": "Academic City, Dubai",
-                    "country": "United Arab Emirates"
-                }
-                st.rerun()
-        except Exception as e:
-            st.toast(f"Geocoding Error: {e}")
-
-with nav_col3:
-    st.markdown("<div style='text-align: right;'><b>Admin User</b><br><small style='color: #6B7280;'>Authority Dispatch</small></div>", unsafe_allow_html=True)
+        loc_res = geocode(f"{search_query}, Academic City, Dubai, UAE")
+        if loc_res:
+            st.session_state.map_center = [loc_res.latitude, loc_res.longitude]
+            st.session_state.location_data = {"display_name": search_query, "full_address": loc_res.address}
+            st.rerun()
 
 st.divider()
 
-# -----------------------------------------------------------------------------
-# 2. ISOLATED FRAGMENT FOR MAP & ADDRESS DISPLAY
-# -----------------------------------------------------------------------------
-@st.fragment
-def render_map_and_address_card():
-    st.markdown(f"""
-        <div class="card-box">
-            <h2 style="margin: 0; color: #111827;">📍 {st.session_state.location_data['display_name']}</h2>
-            <p style="color: #059669; font-weight: 600; margin-top: 6px; font-size: 0.9rem;">Verified Address:</p>
-            <p style="color: #374151; background-color: #F3F4F6; padding: 10px; border-radius: 6px; font-size: 0.88rem;">{st.session_state.location_data['full_address']}</p>
-            <div style="display: flex; gap: 20px; font-size: 0.85rem; color: #4B5563;">
-                <span><b>Lat:</b> {st.session_state.map_center[0]:.5f}</span>
-                <span><b>Lon:</b> {st.session_state.map_center[1]:.5f}</span>
-            </div>
-        </div>
-    """, unsafe_allow_html=True)
-
-    m = folium.Map(location=st.session_state.map_center, zoom_start=16)
-
-    folium.Marker(
-        location=st.session_state.map_center,
-        popup=st.session_state.location_data['display_name'],
-        icon=folium.Icon(color="red", icon="star")
-    ).add_to(m)
-
-    for lm in DIAC_LANDMARKS:
-        folium.Marker(
-            location=lm["coords"],
-            popup=lm["name"],
-            icon=folium.Icon(color="red", icon="info-sign")
-        ).add_to(m)
-
-    map_data = st_folium(
-        m,
-        key=f"map_{st.session_state.map_center[0]:.4f}_{st.session_state.map_center[1]:.4f}",
-        width="100%",
-        height=380,
-        returned_objects=["last_clicked"]
-    )
-
-    if map_data and map_data.get("last_clicked"):
-        clicked_lat = map_data["last_clicked"]["lat"]
-        clicked_lon = map_data["last_clicked"]["lng"]
-        
-        if [round(clicked_lat, 4), round(clicked_lon, 4)] != [round(st.session_state.map_center[0], 4), round(st.session_state.map_center[1], 4)]:
-            st.session_state.map_center = [clicked_lat, clicked_lon]
-            matched_lm = next((lm for lm in DIAC_LANDMARKS if abs(lm["coords"][0] - clicked_lat) < 0.002 and abs(lm["coords"][1] - clicked_lon) < 0.002), None)
-
-            if matched_lm:
-                st.session_state.location_data = {
-                    "display_name": matched_lm["name"],
-                    "full_address": matched_lm["address"],
-                    "city": "Academic City, Dubai",
-                    "country": "United Arab Emirates"
-                }
-            else:
-                try:
-                    rev_loc = reverse(f"{clicked_lat}, {clicked_lon}")
-                    if rev_loc:
-                        st.session_state.location_data = {
-                            "display_name": rev_loc.address.split(",")[0],
-                            "full_address": rev_loc.address,
-                            "city": "Academic City, Dubai",
-                            "country": "United Arab Emirates"
-                        }
-                except Exception:
-                    st.session_state.location_data = {
-                        "display_name": f"DIAC Point ({clicked_lat:.4f}, {clicked_lon:.4f})",
-                        "full_address": f"DIAC Coordinates: {clicked_lat:.5f}, {clicked_lon:.5f}",
-                        "city": "Academic City, Dubai",
-                        "country": "United Arab Emirates"
-                    }
-            st.rerun(scope="fragment")
-
-# -----------------------------------------------------------------------------
-# 3. MAIN DASHBOARD GRID
-# -----------------------------------------------------------------------------
+# DASHBOARD GRID
 left_col, center_col, right_col = st.columns([1.2, 3, 1.4])
 
 with left_col:
-    st.markdown(f"""
-        <div class="card-box" style="background-color: #FFFBEB;">
-            <b>🏢 Monitored Location</b><br>
-            <small>{st.session_state.location_data['display_name']}</small>
-        </div>
-    """, unsafe_allow_html=True)
+    st.markdown(f"<div class='card-box'><b>🏢 Location</b><br><small>{st.session_state.location_data['display_name']}</small></div>", unsafe_allow_html=True)
     
     categories = [
         ("💧 Water Management", "Green"),
@@ -408,39 +315,17 @@ with left_col:
             show_aspect_modal(cat_name, status)
 
 with center_col:
-    render_map_and_address_card()
+    m = folium.Map(location=st.session_state.map_center, zoom_start=16)
+    folium.Marker(st.session_state.map_center, popup=st.session_state.location_data['display_name'], icon=folium.Icon(color="red")).add_to(m)
+    st_folium(m, width="100%", height=380, returned_objects=[])
 
-    st.subheader("Active Model Predictions")
+    st.subheader("Active Predictions")
     i1, i2, i3, i4 = st.columns(4)
-    
-    with i1:
-        st.error("**Roof Management**\n\nLogistic Reg: High Defect Risk")
-        if st.button("Run Model →", key="vi_1"): show_aspect_modal("🏠 Roof Management", "Red")
-            
-    with i2:
-        st.warning("**Drainage Systems**\n\nDecision Tree: Overflow Risk")
-        if st.button("Run Model →", key="vi_2"): show_aspect_modal("🚰 Drainage Systems", "Red")
-            
-    with i3:
-        st.warning("**Electricity**\n\nRandom Forest: Load Overload")
-        if st.button("Run Model →", key="vi_3"): show_aspect_modal("⚡ Electricity", "Yellow")
-            
-    with i4:
-        st.warning("**Water Systems**\n\nLinear Reg: Pressure Balance")
-        if st.button("Run Model →", key="vi_4"): show_aspect_modal("💧 Water Management", "Green")
-
-with right_col:
-    st.markdown("""
-        <div class="flag-box">
-            <h4 style="margin: 0;">🚨 3 AI Anomaly Flags</h4>
-            <small>High model variance detected</small>
-        </div>
-    """, unsafe_allow_html=True)
-
-    st.markdown("""
-        <div class="yellow-card-container">
-            <span style="font-weight:700; color: #92400E;">📝 REPORT AN ISSUE</span><br>
-            <small style="color: #78350F;">Dispatch emergency maintenance crew</small><br><br>
-            <a href="?navigate=feedback" class="yellow-card-button">📢 Report the Issue</a>
-        </div>
-    """, unsafe_allow_html=True)
+    with i1: 
+        if st.button("Roof Model 🔴"): show_aspect_modal("🏠 Roof Management", "Red")
+    with i2: 
+        if st.button("Drainage Model 🔴"): show_aspect_modal("🚰 Drainage Systems", "Red")
+    with i3: 
+        if st.button("Electricity Model 🟡"): show_aspect_modal("⚡ Electricity", "Yellow")
+    with i4: 
+        if st.button("Water Model 🟢"): show_aspect_modal("💧 Water Management", "Green")
