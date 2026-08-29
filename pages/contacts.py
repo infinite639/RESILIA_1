@@ -1,6 +1,6 @@
 import streamlit as st
 
-st.set_page_config(page_title="RESILIA - Contacts Directory", page_icon="🛡️", layout="wide")
+st.set_page_config(page_title="RESILIA - Contacts Directory", page_icon="image_1.png", layout="wide")
 
 # -----------------------------------------------------------------------------
 # 1. POP-UP MODALS (MORE HELP & CALLING)
@@ -171,7 +171,7 @@ st.markdown("""
 nav_col1, nav_col2, nav_col3 = st.columns([1.5, 3, 1.8])
 
 with nav_col1:
-    if st.button("🛡️ RESILIA", key="nav_home_brand"):
+    if st.button("RESILIA", key="nav_home_brand"):
         try:
             st.switch_page("pages/maintenance.py")
         except Exception:
