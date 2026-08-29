@@ -362,10 +362,10 @@ with right_info_col:
                 Your reports help RESILIA's AI detect problems early, prioritize maintenance actions, and improve building resilience for everyone.
             </p>
             <ul style="font-size: 0.85rem; color: #374151; padding-left: 18px; margin-top: 10px; line-height: 1.8;">
-                <li>🤖 <b>Issues analyzed</b> by our AI system</li>
-                <li>🎯 <b>Assigned</b> to the right authorities</li>
-                <li>⚡ <b>Faster response</b> and resolution</li>
-                <li>🛡️ <b>Safer, more resilient</b> communities</li>
+                <li>!<b>Issues analyzed</b> by our AI system</li>
+                <li>!<b>Assigned</b> to the right authorities</li>
+                <li>!<b>Faster response</b> and resolution</li>
+                <li>!<b>Safer, more resilient</b> communities</li>
             </ul>
         </div>
     """, unsafe_allow_html=True)
@@ -399,4 +399,4 @@ with right_info_col:
 
 # Footer
 st.divider()
-st.caption("🛡️ RESILIA — © 2026 RESILIA. All rights reserved.")
+st.caption(" RESILIA — © 2026 RESILIA. All rights reserved.")
