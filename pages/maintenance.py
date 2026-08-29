@@ -327,7 +327,7 @@ st.markdown("""
 nav_col1, nav_col2, nav_col3 = st.columns([1.5, 3.2, 1.8])
 
 with nav_col1:
-    st.markdown("### 🛡️ **RESILIA**")
+    st.markdown("### **RESILIA**")
     st.caption("AI Building Intelligence Platform")
 
 with nav_col2:
