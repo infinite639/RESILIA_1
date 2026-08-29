@@ -4,7 +4,7 @@ import base64
 # Set page configuration
 st.set_page_config(
     page_title="RESILIA",
-    page_icon="🛡️",
+    page_icon="image_1.png",
     layout="centered"
 )
 
@@ -44,7 +44,7 @@ try:
     logo_html = f'<img src="data:image/png;base64,{logo_base64}" class="logo-img">'
 except FileNotFoundError:
     # Fallback shield if the file name isn't found
-    logo_html = '<div class="logo-placeholder" style="font-size: 4rem;">🛡️</div>'
+    logo_html = '<div class="logo-placeholder" style="font-size: 4rem;"> </div>'
 
 # Custom CSS for styling
 st.markdown("""
@@ -190,7 +190,7 @@ st.markdown(f"""
             <h1 class="brand-title">RESILIA</h1>
         </div>
         <div class="divider"></div>
-        <p class="subtitle">*An AI powered building maintenance<br>and resilience system.</p>
+        <p class="subtitle">An AI powered building maintenance<br>and resilience system.</p>
     </div>
 """, unsafe_allow_html=True)
 
