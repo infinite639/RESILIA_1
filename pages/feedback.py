@@ -357,7 +357,7 @@ with left_form_col:
 with right_info_col:
     st.markdown("""
         <div class="sidebar-card">
-            <h4 style="margin: 0 0 10px 0; font-weight: 700;">👥 Why Your Feedback Matters</h4>
+            <h4 style="margin: 0 0 10px 0; font-weight: 700;"> Why Your Feedback Matters</h4>
             <p style="font-size: 0.85rem; color: #4B5563; line-height: 1.5;">
                 Your reports help RESILIA's AI detect problems early, prioritize maintenance actions, and improve building resilience for everyone.
             </p>
@@ -372,7 +372,7 @@ with right_info_col:
 
     st.markdown("""
         <div class="sidebar-card">
-            <h4 style="margin: 0 0 10px 0; font-weight: 700;">💡 Tips for Helpful Feedback</h4>
+            <h4 style="margin: 0 0 10px 0; font-weight: 700;"> Tips for Helpful Feedback</h4>
             <ul style="font-size: 0.85rem; color: #374151; padding-left: 18px; margin: 0; line-height: 1.9;">
                 <li>☑️ Be as specific as possible about the issue.</li>
                 <li>☑️ Mention the exact location (if possible).</li>
