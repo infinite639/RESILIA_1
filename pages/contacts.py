@@ -19,7 +19,7 @@ def show_more_help_modal(data):
         st.write(f"**Office Location:**\n{data['loc']}")
         st.write(f"**Operating Hours:**\n{data['hours']}")
 
-    st.info(f"ℹ️ **Emergency Response Window:** {data['response_time']}\n\nFor official escalations, submit a formal request via the main RESILIA dashboard.")
+    st.info(f"**Emergency Response Window:** {data['response_time']}\n\nFor official escalations, submit a formal request via the main RESILIA dashboard.")
     
     if st.button("Close Directory Card", use_container_width=True):
         st.rerun()
@@ -30,7 +30,7 @@ def show_calling_modal(data):
     st.markdown(f"<p style='text-align: center; font-size: 1.1rem;'><b>{data['phone']}</b><br><small style='color: #6B7280;'>{data['dept']} — {data['loc']}</small></p>", unsafe_allow_html=True)
     st.divider()
     
-    st.warning("⚠️ Call session initialized via Secure VoIP Gateway. Please ensure microphone permissions are granted.")
+    st.warning("Call session initialized via Secure VoIP Gateway. Please ensure microphone permissions are granted.")
     
     if st.button("End Call", use_container_width=True):
         st.rerun()
@@ -244,55 +244,55 @@ st.write("")
 # -----------------------------------------------------------------------------
 contacts_data = [
     {
-        "icon": "💧", "bg": "#EFF6FF", "title": "Water Management",
+        "icon": "", "bg": "#EFF6FF", "title": "Water Management",
         "dept": "Dubai Municipality HQ", "loc": "Al Wasl Rd, Dubai, UAE",
         "person": "Eng. Ahmed Al Mansoori", "phone": "+971 4 123 4567",
         "hours": "07:30 AM - 03:30 PM", "response_time": "< 30 mins"
     },
     {
-        "icon": "⚡", "bg": "#FEF3C7", "title": "Electricity",
+        "icon": "", "bg": "#FEF3C7", "title": "Electricity",
         "dept": "DEWA Headquarters", "loc": "Al Ittihad Rd, Dubai, UAE",
         "person": "Eng. Fatima Al Zaabi", "phone": "+971 4 234 5678",
         "hours": "24/7 Emergency Response", "response_time": "Immediate"
     },
     {
-        "icon": "🏠", "bg": "#EFF6FF", "title": "Roof Management",
+        "icon": "", "bg": "#EFF6FF", "title": "Roof Management",
         "dept": "Dubai Building Dept.", "loc": "Business Bay, Dubai, UAE",
         "person": "Eng. Omar Hassan", "phone": "+971 4 345 6789",
         "hours": "08:00 AM - 04:00 PM", "response_time": "< 2 hours"
     },
     {
-        "icon": "🏗️", "bg": "#EFF6FF", "title": "Structural Stability",
+        "icon": "", "bg": "#EFF6FF", "title": "Structural Stability",
         "dept": "Trakhees - Structural Dept.", "loc": "Port Saeed, Dubai, UAE",
         "person": "Eng. Salma Tariq", "phone": "+971 4 456 7890",
         "hours": "07:30 AM - 02:30 PM", "response_time": "< 1 hour"
     },
     {
-        "icon": "🌧️", "bg": "#F3F4F6", "title": "Weather Related",
+        "icon": "", "bg": "#F3F4F6", "title": "Weather Related",
         "dept": "National Center of Meteorology", "loc": "Al Barsha, Dubai, UAE",
         "person": "Dr. Khalid Al Nuaimi", "phone": "+971 4 567 8901",
         "hours": "24/7 Weather Monitoring", "response_time": "Real-time"
     },
     {
-        "icon": "🧱", "bg": "#FFEDD5", "title": "Exterior Walls",
+        "icon": "", "bg": "#FFEDD5", "title": "Exterior Walls",
         "dept": "Dubai Municipality - Buildings", "loc": "Deira, Dubai, UAE",
         "person": "Eng. Mariam Farid", "phone": "+971 4 678 9012",
         "hours": "08:00 AM - 03:00 PM", "response_time": "< 4 hours"
     },
     {
-        "icon": "🚰", "bg": "#FEE2E2", "title": "Drainage Systems",
+        "icon": "", "bg": "#FEE2E2", "title": "Drainage Systems",
         "dept": "Dubai Municipality - Sewage Dept.", "loc": "Umm Ramool, Dubai, UAE",
         "person": "Eng. Yousuf Ibrahim", "phone": "+971 4 789 0123",
         "hours": "24/7 Rapid Response", "response_time": "< 20 mins"
     },
     {
-        "icon": "🚪", "bg": "#DCFCE7", "title": "Interior",
+        "icon": "", "bg": "#DCFCE7", "title": "Interior",
         "dept": "Dubai Municipality - Interior Dept.", "loc": "Al Jaddaf, Dubai, UAE",
         "person": "Eng. Noor Al Hammadi", "phone": "+971 4 890 1234",
         "hours": "08:00 AM - 04:00 PM", "response_time": "< 3 hours"
     },
     {
-        "icon": "🛡️", "bg": "#F3F4F6", "title": "Security",
+        "icon": "", "bg": "#F3F4F6", "title": "Security",
         "dept": "Dubai Police - Community Safety", "loc": "Al Kifaf, Dubai, UAE",
         "person": "Lt. Ahmed Bin Rashid", "phone": "+971 4 901 2345",
         "hours": "24/7 Control Room", "response_time": "Immediate"
@@ -337,7 +337,7 @@ for row in range(0, 9, 3):
                         st.toast(f"Contact request initiated for {item['person']}.")
                 with b_col2:
                     # Light grayish shade button triggering More Help Pop-up Modal
-                    if st.button("👁️ More Help", key=f"help_btn_{data_idx}", use_container_width=True):
+                    if st.button(" More Help", key=f"help_btn_{data_idx}", use_container_width=True):
                         show_more_help_modal(item)
                 with b_col3:
                     # Dial button triggering Calling Pop-up Modal
