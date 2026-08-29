@@ -36,7 +36,7 @@ def show_success_modal(summary_data):
         * **Timestamp:** {summary_data['date']}
     """)
     
-    st.info("🤖 **Next Action:** RESILIA's AI model will evaluate this incident and route notice to local municipal authorities.")
+    st.info("**Next Action:** RESILIA's AI model will evaluate this incident and route notice to local municipal authorities.")
     
     # Return button to navigate back to dashboard
     if st.button("Return to Maintenance Dashboard", use_container_width=True):
@@ -253,15 +253,15 @@ with left_form_col:
         st.caption("Type of Issue*")
         
         issue_categories = [
-            ("💧 Water Management", "Water Management"),
-            ("⚡ Electricity", "Electricity"),
-            ("🏠 Roof", "Roof Management"),
-            ("🏗️ Structural Stability", "Structural Stability"),
-            ("🌧️ Weather", "Weather Related"),
-            ("🧱 Exterior Walls", "Exterior Walls"),
-            ("🚰 Drainage", "Drainage Systems"),
-            ("🚪 Interior", "Interior"),
-            ("🔒 Security", "Security")
+            ("Water Management", "Water Management"),
+            ("Electricity", "Electricity"),
+            ("Roof", "Roof Management"),
+            ("Structural Stability", "Structural Stability"),
+            ("Weather", "Weather Related"),
+            ("Exterior Walls", "Exterior Walls"),
+            ("Drainage", "Drainage Systems"),
+            ("Interior", "Interior"),
+            ("Security", "Security")
         ]
         
         selected_issue = st.radio(
@@ -325,9 +325,9 @@ with left_form_col:
         # --- FORM SUBMIT BUTTONS ---
         btn_col1, btn_col2 = st.columns([2, 1.5])
         with btn_col1:
-            submit_clicked = st.button("🚀 Submit Feedback", key="btn_submit_feedback", use_container_width=True)
+            submit_clicked = st.button("Submit Feedback", key="btn_submit_feedback", use_container_width=True)
         with btn_col2:
-            reset_clicked = st.button("🔄 Reset Form", key="btn_reset_form", use_container_width=True)
+            reset_clicked = st.button("Reset Form", key="btn_reset_form", use_container_width=True)
 
         if submit_clicked:
             if not building_address or not issue_description or not user_name:
