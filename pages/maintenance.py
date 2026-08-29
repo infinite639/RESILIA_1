@@ -26,7 +26,7 @@ def load_nlp_pipeline():
 
 @st.cache_resource
 def load_translation_pipelines():
-    """ANNOTATION: Loads Helsinki-NLP translation models for English to Spanish and Arabic."""
+    """Loads Helsinki-NLP translation models for English to Spanish and Arabic."""
     pipelines = {}
     try:
         pipelines['es'] = pipeline("translation", model="Helsinki-NLP/opus-mt-en-es")
@@ -42,7 +42,7 @@ nlp_classifier = load_nlp_pipeline()
 translation_pipes = load_translation_pipelines()
 
 def translate_text(text, target_lang):
-    """ANNOTATION: Dynamic helper function to handle NLP response translation."""
+    """Dynamic helper function to handle NLP response translation."""
     if target_lang == "English" or not text:
         return text
     lang_code = "es" if target_lang == "Spanish" else "ar"
@@ -58,7 +58,6 @@ def translate_text(text, target_lang):
 def run_water_management_ai(location_name):
     """Real Linear Regression model running dynamic water demand prediction."""
     np.random.seed(hash(location_name) % 2**32)
-    # Generate Synthetic Historical Telemetry Data
     occupancy = np.random.uniform(50, 500, 100)
     temp = np.random.uniform(25, 45, 100)
     water_demand = 12.5 + (0.45 * occupancy) + (1.2 * temp) + np.random.normal(0, 5, 100)
@@ -69,7 +68,6 @@ def run_water_management_ai(location_name):
     model = LinearRegression()
     model.fit(X, y)
     
-    # Predict for Current Site Conditions
     current_occ, current_temp = 320, 38.5
     predicted_demand = model.predict([[current_occ, current_temp]])[0]
     r_squared = model.score(X, y)
@@ -79,8 +77,7 @@ def run_water_management_ai(location_name):
         "r2_score": f"{r_squared:.4f}",
         "equation": f"Demand = {model.intercept_:.2f} + ({model.coef_[0]:.2f} × Occupants) + ({model.coef_[1]:.2f} × Temp°C)",
         "prediction": f"{predicted_demand:.2f} m³/day",
-        "evaluation": f"Linear Regression model trained on 100 local sensor iterations projects daily consumption at {predicted_demand:.1f} m³. High correlation ($R^2={r_squared:.3f}$) indicates stable pressure balance.",
-        # ANNOTATION: Added Plain-Language Overview section
+        "evaluation": f"Linear Regression model trained on 100 local sensor iterations projects daily consumption at {predicted_demand:.1f} m³. High correlation (R² = {r_squared:.3f}) indicates stable pressure balance.",
         "plain_overview": f"Water pressure and usage at {location_name} are steady. Based on today's occupancy and hot weather, our AI forecasts normal water usage with low risk of leaks or supply shortages."
     }
 
@@ -89,7 +86,6 @@ def run_electricity_ai(location_name):
     np.random.seed(hash(location_name) % 2**32)
     load = np.random.uniform(40, 100, 200)
     temp = np.random.uniform(30, 50, 200)
-    # Grid failure condition logic
     failure = ((load * 0.6 + temp * 0.4) > 65).astype(int)
 
     X = np.column_stack((load, temp))
@@ -106,7 +102,6 @@ def run_electricity_ai(location_name):
         "failure_risk": f"{prob_failure * 100:.1f}%",
         "top_feature": "Peak Load Factor (Weight: 62.4%)",
         "evaluation": f"Random Forest ensemble evaluated 20 decision trees over transformer telemetry. Probability of thermal overload under current {current_load}% load is {prob_failure*100:.1f}%.",
-        # ANNOTATION: Added Plain-Language Overview section
         "plain_overview": f"Electrical load is running elevated due to high cooling demand. While the system is holding, there is a moderate risk of power trips if additional heavy equipment is turned on."
     }
 
@@ -130,7 +125,6 @@ def run_roof_management_ai(location_name):
         "degradation_prob": f"{prob_degraded * 100:.1f}%",
         "log_odds_coeff": f"[{log_reg.coef_[0][0]:.3f}, {log_reg.coef_[0][1]:.3f}]",
         "evaluation": f"Logistic Sigmoid function calculated a {prob_degraded*100:.1f}% probability of active membrane wear at {location_name}. Structural waterproofing requires reinforcement.",
-        # ANNOTATION: Added Plain-Language Overview section
         "plain_overview": f"Roof inspections indicate noticeable surface wear. Waterproofing layers are weakening, meaning immediate maintenance is recommended before rain or heat degrades it further."
     }
 
@@ -154,7 +148,6 @@ def run_drainage_ai(location_name):
         "predicted_flow": f"{predicted_flow:.2f} L/s",
         "max_depth": "3 Leaves",
         "evaluation": f"Decision Tree regression models maximum hydraulic capacity under 35mm/hr rain conditions at {predicted_flow:.2f} L/s. Hydraulic bottleneck detected at main outflow.",
-        # ANNOTATION: Added Plain-Language Overview section
         "plain_overview": f"Storm drains are operating near full capacity. Heavy rainfall could lead to minor pooling near lower levels due to main pipe flow limits."
     }
 
@@ -209,7 +202,6 @@ DIAC_LANDMARKS = [
 def show_aspect_modal(category_name, status_color):
     current_loc = st.session_state.location_data['display_name']
     
-    # ANNOTATION: Updated Status Color Matching for Modal Header
     badge_style = "badge-high" if status_color == "Red" else "badge-medium" if status_color == "Yellow" else "badge-green"
     status_label = "🔴 CRITICAL ISSUE" if status_color == "Red" else "🟡 WARNING / MONITOR" if status_color == "Yellow" else "🟢 NOMINAL OPERATIONAL"
 
@@ -217,10 +209,9 @@ def show_aspect_modal(category_name, status_color):
     st.markdown(f"**Target Site:** `{current_loc}` | **System Status:** <span class='{badge_style}'>{status_label}</span>", unsafe_allow_html=True)
     st.divider()
     
-    # Compute output via specific ML Models
     if "Water" in category_name:
         res = run_water_management_ai(current_loc)
-        st.markdown(f"#### ⚙️ **AI Engine:** `{res['model_type']}`")
+        st.markdown(f"#### **AI Engine:** `{res['model_type']}`")
         st.markdown(f"**Regression Model Formula:** `{res['equation']}`")
         
         c1, c2 = st.columns(2)
@@ -228,13 +219,13 @@ def show_aspect_modal(category_name, status_color):
         with c2: st.metric("Predicted Daily Water Demand", res['prediction'])
         st.info(f"**AI System Evaluation:** {res['evaluation']}")
         
-        # ANNOTATION: Added User-Friendly Plain Language Overview
-        st.markdown("#### 💡 **Plain Language Executive Summary**")
+        # Heading updated to Executive Summary (unwanted inline icons removed)
+        st.markdown("#### **Executive Summary**")
         st.success(res['plain_overview'])
 
     elif "Electricity" in category_name:
         res = run_electricity_ai(current_loc)
-        st.markdown(f"#### ⚙️ **AI Engine:** `{res['model_type']}`")
+        st.markdown(f"#### **AI Engine:** `{res['model_type']}`")
         st.markdown(f"**Primary Decision Feature:** `{res['top_feature']}`")
         
         c1, c2 = st.columns(2)
@@ -242,13 +233,12 @@ def show_aspect_modal(category_name, status_color):
         with c2: st.metric("Active Model Estimators", "20 Trees")
         st.warning(f"**AI System Evaluation:** {res['evaluation']}")
         
-        # ANNOTATION: Added User-Friendly Plain Language Overview
-        st.markdown("#### 💡 **Plain Language Executive Summary**")
+        st.markdown("#### **Executive Summary**")
         st.info(res['plain_overview'])
 
     elif "Roof" in category_name:
         res = run_roof_management_ai(current_loc)
-        st.markdown(f"#### ⚙️ **AI Engine:** `{res['model_type']}`")
+        st.markdown(f"#### **AI Engine:** `{res['model_type']}`")
         st.markdown(f"**Logistic Weights Vector:** `{res['log_odds_coeff']}`")
         
         c1, c2 = st.columns(2)
@@ -256,13 +246,12 @@ def show_aspect_modal(category_name, status_color):
         with c2: st.metric("Decision Boundary", "Sigmoid Threshold (0.5)")
         st.error(f"**AI System Evaluation:** {res['evaluation']}")
         
-        # ANNOTATION: Added User-Friendly Plain Language Overview
-        st.markdown("#### 💡 **Plain Language Executive Summary**")
+        st.markdown("#### **Executive Summary**")
         st.warning(res['plain_overview'])
 
     elif "Drainage" in category_name:
         res = run_drainage_ai(current_loc)
-        st.markdown(f"#### ⚙️ **AI Engine:** `{res['model_type']}`")
+        st.markdown(f"#### **AI Engine:** `{res['model_type']}`")
         st.markdown(f"**Tree Structure Depth:** `{res['max_depth']}`")
         
         c1, c2 = st.columns(2)
@@ -270,29 +259,26 @@ def show_aspect_modal(category_name, status_color):
         with c2: st.metric("Hydraulic Loss Index", "14.2%")
         st.warning(f"**AI System Evaluation:** {res['evaluation']}")
         
-        # ANNOTATION: Added User-Friendly Plain Language Overview
-        st.markdown("#### 💡 **Plain Language Executive Summary**")
+        st.markdown("#### **Executive Summary**")
         st.warning(res['plain_overview'])
 
     else:
         res = run_water_management_ai(current_loc)
-        st.markdown(f"#### ⚙️ **AI Engine:** `Multivariate Statistical Model`")
+        st.markdown(f"#### **AI Engine:** `Multivariate Statistical Model`")
         st.metric("System Condition Index", "94.8%")
         st.info(f"**AI System Evaluation:** Standard mathematical telemetry model evaluated nominal operational state for {current_loc}.")
-        st.markdown("#### 💡 **Plain Language Executive Summary**")
+        st.markdown("#### **Executive Summary**")
         st.success(f"System operating within expected safety parameters at {current_loc}.")
 
     st.divider()
 
-    # REAL-TIME TRANSFORMER NLP INTERACTION WITH LANGUAGE SELECTION
-    st.markdown("#### 💬 NLP Inquiry & Diagnostics Assistant")
+    st.markdown("#### **NLP Inquiry & Diagnostics Assistant**")
     
-    # ANNOTATION: Language Toggle selection for HuggingFace dynamic translation
     target_lang = st.radio("Response Output Language:", ["English", "Spanish", "Arabic"], horizontal=True)
     user_query = st.text_input("Ask the AI Model a diagnostic question...", placeholder=f"Is the {category_name} system operating safely?")
     
     if user_query:
-        st.markdown("**🤖 Real-Time Transformer Model Processing:**")
+        st.markdown("**Real-Time Transformer Model Processing:**")
         if nlp_classifier:
             output = nlp_classifier(user_query)[0]
             label = output['label']
@@ -329,6 +315,9 @@ st.markdown("""
         .badge-medium { background-color: #FEF3C7; color: #D97706; padding: 3px 8px; border-radius: 4px; font-size: 0.75rem; font-weight: 600; }
         .badge-green { background-color: #D1FAE5; color: #059669; padding: 3px 8px; border-radius: 4px; font-size: 0.75rem; font-weight: 600; }
         .yellow-card-container { background-color: #FEF3C7; border: 1px solid #FDE68A; border-radius: 10px; padding: 18px 16px; text-align: center; margin-top: 15px; }
+        .feedback-scroll-box { max-height: 220px; overflow-y: auto; background-color: #FFFFFF; border: 1px solid #E5E7EB; border-radius: 8px; padding: 12px; margin-bottom: 15px; }
+        .feedback-item { padding: 8px; border-bottom: 1px solid #F3F4F6; font-size: 0.8rem; }
+        .feedback-item:last-child { border-bottom: none; }
     </style>
 """, unsafe_allow_html=True)
 
@@ -499,7 +488,6 @@ with center_col:
         if st.button("Run Model →", key="vi_4"): show_aspect_modal("💧 Water Management", "Green")
 
 with right_col:
-    # ANNOTATION: Red Box Updated to depict Data Inadequacy in telemetry models
     st.markdown("""
         <div class="flag-box">
             <h4 style="margin: 0; color: #991B1B;">⚠️ Telemetry Data Inadequacy Flag</h4>
@@ -511,7 +499,6 @@ with right_col:
         </div>
     """, unsafe_allow_html=True)
 
-    # ANNOTATION: Comprehensive Real-Time Telemetry Summary for the Current Address
     curr_addr = st.session_state.location_data['display_name']
     water_res = run_water_management_ai(curr_addr)
     elec_res = run_electricity_ai(curr_addr)
@@ -531,16 +518,42 @@ with right_col:
         </div>
     """, unsafe_allow_html=True)
 
-    # ANNOTATION: Native Multi-Page Streamlit Navigation Fix replacing raw HTML href
+    # NEW: Scrollable Community Feedback Section
     st.markdown("""
-        <div class="yellow-card-container">
-            <span style="font-weight:700; color: #92400E;">📝 REPORT AN ISSUE</span><br>
-            <small style="color: #78350F;">Dispatch emergency maintenance crew</small><br><br>
+        <div style="font-weight: 700; font-size: 0.9rem; color: #374151; margin-bottom: 6px;">
+            💬 Public Feedback & Resident Reports
+        </div>
+        <div class="feedback-scroll-box">
+            <div class="feedback-item">
+                <b>Block 11 - Resident</b> <span style="color:#6B7280;">(10m ago)</span><br>
+                <span>Noticed minor water dripping from the ceiling near main hallway B.</span>
+            </div>
+            <div class="feedback-item">
+                <b>Facilities Tech</b> <span style="color:#6B7280;">(1h ago)</span><br>
+                <span>Transformer noise level elevated during peak afternoon heat cycle.</span>
+            </div>
+            <div class="feedback-item">
+                <b>Student Housing Rep</b> <span style="color:#6B7280;">(3h ago)</span><br>
+                <span>Drainage outlet slow to clear water following morning cleaning.</span>
+            </div>
+            <div class="feedback-item">
+                <b>Site Inspector</b> <span style="color:#6B7280;">(Yesterday)</span><br>
+                <span>Roof membrane inspection scheduled; thermal camera flags hotspots.</span>
+            </div>
         </div>
     """, unsafe_allow_html=True)
-    
-    if st.button("📢 Report the Issue", key="nav_report_issue_btn", use_container_width=True):
-        try:
-            st.switch_page("pages/feedback.py")
-        except Exception:
-            st.error("Target file `pages/feedback.py` not found in project directory structure.")
+
+    # UPDATED: Button contained directly inside the yellow container box
+    with st.container():
+        st.markdown("""
+            <div class="yellow-card-container">
+                <span style="font-weight:700; color: #92400E;">REPORT AN ISSUE</span><br>
+                <small style="color: #78350F;">Dispatch emergency maintenance crew</small>
+            </div>
+        """, unsafe_allow_html=True)
+        
+        if st.button("📢 Report the Issue", key="nav_report_issue_btn", use_container_width=True):
+            try:
+                st.switch_page("pages/feedback.py")
+            except Exception:
+                st.error("Target file `pages/feedback.py` not found in project directory structure.")
